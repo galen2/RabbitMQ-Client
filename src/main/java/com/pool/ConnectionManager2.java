@@ -32,9 +32,9 @@ import com.PropertiesManager;
  * @author shijin
  *
  */
-public class ConnectionManager {
+public class ConnectionManager2 {
 	
-	private static ConnectionManager dbm = null;
+	private static ConnectionManager2 dbm = null;
 	
 	//单例模式里的成员变量都相当于是static了？
 	/**
@@ -52,7 +52,7 @@ public class ConnectionManager {
 	
 	private final org.slf4j.Logger log = LoggerFactory.getLogger(DBConnectionPool.class);
 	
-	private ConnectionManager() {
+	private ConnectionManager2() {
 		loadDrivers();
 		createPools();
 	}
@@ -116,9 +116,9 @@ public class ConnectionManager {
 	 * 获得单例
 	 * @return ConnectionManager单例
 	 */
-	public synchronized static ConnectionManager getInstance() {
+	public synchronized static ConnectionManager2 getInstance() {
 		if(dbm == null) {
-			dbm = new ConnectionManager();
+			dbm = new ConnectionManager2();
 		}
 		clients++;
 		return dbm;
