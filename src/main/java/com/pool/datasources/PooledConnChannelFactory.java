@@ -10,14 +10,14 @@ import com.pool.imp.MQPooledConnObject;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 
-public class PooledConnectionFactory {
+public class PooledConnChannelFactory {
 	
 	private final BrokerConnectionFactory _connFactory;
-	public PooledConnectionFactory(BrokerConnectionFactory connFactory){
+	public PooledConnChannelFactory(BrokerConnectionFactory connFactory){
 		this._connFactory = connFactory;
 	}
 	
-	public MQPooledConnObject makeObject() throws Exception{
+	public MQPooledConnObject makeObject(PoolConnObjectManager manager) throws Exception{
 		Connection conn = _connFactory.createConnection();
 		if(conn == null){
 			throw new IllegalStateException("BrokerConnectionFactory return null from createConnection");
@@ -35,7 +35,7 @@ public class PooledConnectionFactory {
 		}
 		// XXX ObjectName connJmxName;
 		ObjectName connJmxName = new ObjectName("");
-		PoolableConnection pc = new PoolableConnection(conn, connJmxName);
+		PoolableConnection pc = new PoolableConnection(manager,conn, connJmxName);
         return new MQPooledConnObject(pc);
 	}
 	
@@ -46,11 +46,11 @@ public class PooledConnectionFactory {
 		}
 	}
 	
-	public MQPooledChannelObject makeObject(PoolableConnection pconn) throws Exception{
+	public MQPooledChannelObject makeObject(PoolChanelObjectManager manager,PoolableConnection pconn) throws Exception{
 		Connection conn = pconn.getDelegate();
 		Channel channel = _connFactory.createChannel(conn);
 		ObjectName channelJmxName = new ObjectName("");
-		PoolableChannel pc = new PoolableChannel(channel, pconn,channelJmxName);
+		PoolableChannel pc = new PoolableChannel(manager,channel, pconn,channelJmxName);
 		return new MQPooledChannelObject(pc);
 	}
 

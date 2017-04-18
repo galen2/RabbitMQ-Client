@@ -1,5 +1,7 @@
 package com.pool.datasources;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -10,8 +12,8 @@ import com.pool.imp.MQPooledChannelObject;
 import com.pool.imp.MQPooledConnObject;
 import com.pool.imp.PollObjectMangerConfig;
 
-public class PoolChanelObjectManager {
-    private final PooledConnectionFactory factory;
+public class PoolChanelObjectManager<T> {
+    private final PooledConnChannelFactory factory;
     private final LinkedBlockingDeque<MQPooledChannelObject> idleChannelObjects;
     private final AtomicLong createConnCount = new AtomicLong(0);
     private final PoolConnObjectManager poolConnObjectManager;
@@ -20,8 +22,11 @@ public class PoolChanelObjectManager {
     
     private volatile int maxChannelConnTotal = BasePoolConfig.DEFAULT_MAX_CHANNEL_TOTAL_TO_CONN;
 
-
-	public PoolChanelObjectManager(PooledConnectionFactory pooledConnectionFactory,PollObjectMangerConfig config,PoolConnObjectManager manager){
+    private final Map<IdentityWrapper<PoolableChannel>, MQPooledChannelObject> allObjects =
+            new ConcurrentHashMap<IdentityWrapper<PoolableChannel>, MQPooledChannelObject>();
+    
+    
+	public PoolChanelObjectManager(PooledConnChannelFactory pooledConnectionFactory,PollObjectMangerConfig config,PoolConnObjectManager manager){
 		this.factory = pooledConnectionFactory;
 		idleChannelObjects = new LinkedBlockingDeque<MQPooledChannelObject>();
 		this.poolConnObjectManager = manager;
@@ -93,6 +98,7 @@ public class PoolChanelObjectManager {
 			pooledConnObject = poolConnObjectManager.borrowConnObject(borrowMaxWaitMillis);
 			AtomicLong count = pooledConnObject.getChannelCount();
 			if(count.get()<=maxChannelConnTotal){
+				poolConnObjectManager.returnObject(pooledConnObject.get_poolableConn());
 				break;
 			}
 		}
@@ -103,7 +109,9 @@ public class PoolChanelObjectManager {
 		final MQPooledChannelObject p;
 		try {
 			PoolableConnection pooledConn = pooledConnObject.get_poolableConn();
-			p = factory.makeObject(pooledConn);
+			p = factory.makeObject(this,pooledConn);
+			PoolableChannel channel = p.get_poolableChannel();
+			allObjects.put(new IdentityWrapper<PoolableChannel>(channel), p);
 			pooledConnObject.getChannelCount().incrementAndGet();
 		} catch (Exception e) {
 			throw e;
@@ -111,5 +119,28 @@ public class PoolChanelObjectManager {
 		return p;
 	}
 	
+	public void returnObject(PoolableChannel obj){
+		MQPooledChannelObject p = allObjects.get(new IdentityWrapper<PoolableChannel>(obj));
+		idleChannelObjects.addFirst(p);
+	}
+	
+	static class IdentityWrapper<T>{
+		T instances;
+		public IdentityWrapper(T instances){
+			this.instances = instances;
+		}
+		@Override
+		public int hashCode() {
+			// TODO Auto-generated method stub
+			return System.identityHashCode(instances);
+		}
+		@Override
+		@SuppressWarnings("rawtypes")
+		public boolean equals(Object obj) {
+			// TODO Auto-generated method stub
+			return ((IdentityWrapper)obj).instances == instances;
+		}
+		
+	}
 	
 }

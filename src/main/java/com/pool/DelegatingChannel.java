@@ -1,10 +1,10 @@
-package com;
+package com.pool;
 
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
-import com.pool.DelegatingMQConnection;
+import com.pool.DelegatingConnection;
 import com.rabbitmq.client.AMQP.Basic.RecoverOk;
 import com.rabbitmq.client.AMQP.BasicProperties;
 import com.rabbitmq.client.AMQP.Exchange.BindOk;
@@ -27,11 +27,11 @@ import com.rabbitmq.client.ReturnListener;
 import com.rabbitmq.client.ShutdownListener;
 import com.rabbitmq.client.ShutdownSignalException;
 
-public class DelegatingMQChannel implements Channel{
+public class DelegatingChannel<C extends Channel> implements Channel{
 	//真实的channel
-	private volatile Channel _channel;
-	private DelegatingMQConnection _conn ;
-	public DelegatingMQChannel(Channel channel,DelegatingMQConnection conn){
+	private volatile C _channel;
+	private DelegatingConnection _conn ;
+	public DelegatingChannel(C channel,DelegatingConnection conn){
 		this._channel = channel;
 		this._conn = conn;
 	}
@@ -40,7 +40,7 @@ public class DelegatingMQChannel implements Channel{
 		return _channel;
 	}
 	
-	public DelegatingMQConnection getDelegatingMQConnection(){
+	public DelegatingConnection getDelegatingMQConnection(){
 		return _conn;
 	}
 

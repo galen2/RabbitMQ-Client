@@ -1,7 +1,7 @@
 package com.pool.datasources;
 
 
-import com.DelegatingMQChannel;
+import com.pool.DelegatingChannel;
 import com.pool.PoolableChannel;
 import com.rabbitmq.client.Channel;
 
@@ -36,7 +36,7 @@ public class MQPoolingDataSource {
 	 * 为了某些方法安全考虑，可以重写某些方法，
 	 *
 	 */
-	/*private class PoolGrardConnectionWrapper extends DelegatingMQConnection{
+	/*private class PoolGrardConnectionWrapper extends DelegatingConnection{
 		public PoolGrardConnectionWrapper(PoolableConnection conn){
 			super(conn);
 		}
@@ -63,7 +63,7 @@ public class MQPoolingDataSource {
 	}
 	
 	
-	private class PoolGrardChannelWrapper extends DelegatingMQChannel{
+	private class PoolGrardChannelWrapper extends DelegatingChannel{
 		public PoolGrardChannelWrapper(PoolableChannel channel){
 			super(channel,channel.getDelegatingMQConnection());
 		}

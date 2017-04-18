@@ -11,12 +11,12 @@ import com.rabbitmq.client.ExceptionHandler;
 import com.rabbitmq.client.ShutdownListener;
 import com.rabbitmq.client.ShutdownSignalException;
 
-public class DelegatingMQConnection implements Connection{
+public class DelegatingConnection<C extends Connection> implements Connection{
 	
 	//为了安全封装真实的server连接，防止外部访问
-	private volatile Connection _conn = null;
+	private volatile C _conn = null;
 
-	public DelegatingMQConnection(Connection conn){
+	public DelegatingConnection(C conn){
 		this._conn = conn;
 	}
 	
@@ -35,7 +35,7 @@ public class DelegatingMQConnection implements Connection{
 	}
 	
 	
-    protected final void setDelegateInternal(Connection conn) {
+    protected final void setDelegateInternal(C conn) {
     	this._conn = conn;
     }
 	

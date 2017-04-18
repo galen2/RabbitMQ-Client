@@ -1,28 +1,35 @@
 package com.pool.datasources;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.pool.BasePoolConfig;
 import com.pool.PoolConfig;
-import com.pool.imp.MQPooledChannelObject;
+import com.pool.PoolableConnection;
+import com.pool.datasources.PoolChanelObjectManager.IdentityWrapper;
 import com.pool.imp.MQPooledConnObject;
 import com.pool.imp.PollObjectMangerConfig;
 
-public class PoolConnObjectManager {
-    private final PooledConnectionFactory factory;
+public class PoolConnObjectManager<T> {
+    private final PooledConnChannelFactory factory;
     private final LinkedBlockingDeque<MQPooledConnObject> idleConnObjects;
-    private final LinkedBlockingDeque<MQPooledChannelObject> idleChannelObjects;
+//    private final LinkedBlockingDeque<MQPooledChannelObject> idleChannelObjects;
     private final AtomicLong createConnCount = new AtomicLong(0);
     
     private volatile long maxWaitMillis = BasePoolConfig.DEFAULT_MAX_WAIT_MILLIS;
     
     private volatile int maxTotal = BasePoolConfig.DEFAULT_MAX_CONN_TOTAL;
+    
+    private final Map<IdentityWrapper<PoolableConnection>, MQPooledConnObject> allObjects =
+            new ConcurrentHashMap<IdentityWrapper<PoolableConnection>, MQPooledConnObject>();
+    
 
-	public PoolConnObjectManager(PooledConnectionFactory pooledConnectionFactory,PollObjectMangerConfig config){
+	public PoolConnObjectManager(PooledConnChannelFactory pooledConnectionFactory,PollObjectMangerConfig config){
 		this.factory = pooledConnectionFactory;
 		idleConnObjects = new LinkedBlockingDeque<MQPooledConnObject>();
-		idleChannelObjects = new LinkedBlockingDeque<MQPooledChannelObject>();
+//		idleChannelObjects = new LinkedBlockingDeque<MQPooledChannelObject>();
 	}
 	
 	 
@@ -63,17 +70,43 @@ public class PoolConnObjectManager {
 	private MQPooledConnObject createPooledConnObject() throws Exception{
 		final MQPooledConnObject p;
 		try {
-			p = factory.makeObject();
+			p = factory.makeObject(this);
 		} catch (Exception e) {
 			throw e;
 		}
+		PoolableConnection cnn = p.get_poolableConn();
+		allObjects.put(new IdentityWrapper<PoolableConnection>(cnn), p);
 		return p;
 	}
 	
+	public void returnObject(PoolableConnection  cnn){
+		MQPooledConnObject pp = allObjects.get(new IdentityWrapper<PoolableConnection>(cnn));
+		idleConnObjects.addFirst(pp);
+	}
+	static class IdentityWrapper<T>{
+		T instances;
+		public IdentityWrapper(T instances){
+			this.instances = instances;
+		}
+		@Override
+		public int hashCode() {
+			// TODO Auto-generated method stub
+			return System.identityHashCode(instances);
+		}
+		@Override
+		@SuppressWarnings("rawtypes")
+		public boolean equals(Object obj) {
+			// TODO Auto-generated method stub
+			return ((IdentityWrapper)obj).instances == instances;
+		}
+		
+	}
 	
 	public void setConfig(PoolConfig poolConfig){
 		
 	}
+	
+	
 	
 	
 }
