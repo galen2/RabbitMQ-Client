@@ -1,6 +1,7 @@
 package com.pool.datasources;
 
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicLong;
@@ -37,6 +38,16 @@ public class PoolChanelObjectManager<T> {
 		return maxWaitMillis;
 	}
 
+	
+
+	public int getMaxChannelConnTotal() {
+		return maxChannelConnTotal;
+	}
+
+
+	public void setMaxChannelConnTotal(int maxChannelConnTotal) {
+		this.maxChannelConnTotal = maxChannelConnTotal;
+	}
 
 
 	public void setMaxWaitMillis(long maxWaitMillis) {
@@ -54,24 +65,6 @@ public class PoolChanelObjectManager<T> {
 	}
 	
 	
-/*	public PoolableChannel borrowObject(long borrowMaxWaitMillis) throws Exception{
-		MQPooledConnObject pooledConnObject = null;
-		for(;;){
-			pooledConnObject = poolConnObjectManager.borrowConnObject(borrowMaxWaitMillis);
-			AtomicLong count = pooledConnObject.getChannelCount();
-			if(count.get()<=maxChannelConnTotal){
-				break;
-			}
-		}
-		return borrowObject(pooledConnObject, borrowMaxWaitMillis);
-	}
-	*/
-
-	/*private boolean enableCreateChannel(MQPooledConnObject pooledConnObject){
-		AtomicLong count = pooledConnObject.getChannelCount();
-		return count.get()<=maxChannelConnTotal;
-	}*/
-	
 	/**
 	 * 创建连接池的channel
 	 * @param pooledConnObject
@@ -87,6 +80,9 @@ public class PoolChanelObjectManager<T> {
 			if(pchan == null ){
 				MQPooledConnObject pooledConnObject = boorowConnValidObject(borrowMaxWaitMillis);
 				pchan = createPooledChannelObject(pooledConnObject);
+				if(pchan == null){
+					throw new NoSuchElementException("pool exhausted");
+				}
 			}
 		}
 		return pchan.get_poolableChannel();
@@ -108,11 +104,19 @@ public class PoolChanelObjectManager<T> {
 	private MQPooledChannelObject createPooledChannelObject(MQPooledConnObject pooledConnObject) throws Exception{
 		final MQPooledChannelObject p;
 		try {
+			int localtMaxTotal = getMaxChannelConnTotal();
+			AtomicLong createCount = pooledConnObject.getChannelCount();
+			long newCreateCount = createCount.incrementAndGet();
+			if(newCreateCount > localtMaxTotal){
+				createCount.decrementAndGet();
+				return null;
+			}
+
 			PoolableConnection pooledConn = pooledConnObject.get_poolableConn();
 			p = factory.makeObject(this,pooledConn);
 			PoolableChannel channel = p.get_poolableChannel();
+			
 			allObjects.put(new IdentityWrapper<PoolableChannel>(channel), p);
-			pooledConnObject.getChannelCount().incrementAndGet();
 		} catch (Exception e) {
 			throw e;
 		}
