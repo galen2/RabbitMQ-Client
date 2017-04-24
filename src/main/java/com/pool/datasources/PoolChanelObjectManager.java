@@ -81,14 +81,14 @@ public class PoolChanelObjectManager<T> {
 				MQPooledConnObject pooledConnObject = boorowConnValidObject(borrowMaxWaitMillis);
 				pchan = createPooledChannelObject(pooledConnObject);
 				if(pchan == null){
-					throw new NoSuchElementException("pool exhausted");
+					throw new NoSuchElementException("channel pool  exhausted");
 				}
 			}
 		}
 		return pchan.get_poolableChannel();
 	}
 	
-	public MQPooledConnObject boorowConnValidObject(long borrowMaxWaitMillis) throws Exception{
+	private MQPooledConnObject boorowConnValidObject(long borrowMaxWaitMillis) throws Exception{
 		MQPooledConnObject pooledConnObject = null;
 		for(;;){
 			pooledConnObject = poolConnObjectManager.borrowConnObject(borrowMaxWaitMillis);

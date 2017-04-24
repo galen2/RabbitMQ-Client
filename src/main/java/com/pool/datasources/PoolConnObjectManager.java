@@ -1,6 +1,7 @@
 package com.pool.datasources;
 
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicLong;
@@ -62,6 +63,9 @@ public class PoolConnObjectManager<T> {
 			pcnn = idleConnObjects.pollFirst();
 			if(pcnn == null ){
 				pcnn = createPooledConnObject();
+				if(pcnn == null){
+					throw new NoSuchElementException("conn pool exhausted");
+				}
 			}
 		}
 		return pcnn;
