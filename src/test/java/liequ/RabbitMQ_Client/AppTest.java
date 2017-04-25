@@ -1,38 +1,22 @@
 package liequ.RabbitMQ_Client;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import java.util.concurrent.LinkedBlockingDeque;
 
 /**
  * Unit test for simple App.
  */
-public class AppTest 
-    extends TestCase
-{
-    /**
-     * Create the test case
-     *
-     * @param testName name of the test case
-     */
-    public AppTest( String testName )
-    {
-        super( testName );
-    }
+public class AppTest {
+	
+	@org.junit.Test
+	public void queue() throws Exception{
+		LinkedBlockingDeque que = new LinkedBlockingDeque();
+		que.addFirst(1);
+		que.addLast(2);
+		que.addLast(3);
 
-    /**
-     * @return the suite of tests being tested
-     */
-    public static Test suite()
-    {
-        return new TestSuite( AppTest.class );
-    }
+		
+		System.out.println(que.take());
+		System.out.println(que.take());
 
-    /**
-     * Rigourous Test :-)
-     */
-    public void testApp()
-    {
-        assertTrue( true );
-    }
+	}
 }

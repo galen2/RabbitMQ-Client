@@ -65,11 +65,10 @@ public class PoolChanelObjectManager<T> {
 	 */
 	public PoolableChannel borrowObject(long borrowMaxWaitMillis) throws Exception{
 		MQPooledChannelObject pchan = null;
-		long waitTime = System.currentTimeMillis();
 		while(pchan==null){
 			pchan = idleChannelObjects.pollFirst();
 			if(pchan == null ){
-				MQPooledConnObject pooledConnObject = boorowConnValidObject(borrowMaxWaitMillis);
+				MQPooledConnObject pooledConnObject = borrowConnValidObject(borrowMaxWaitMillis);
 				pchan = createPooledChannelObject(pooledConnObject);
 				if(pchan == null){
 					throw new NoSuchElementException("channel pool  exhausted");
@@ -79,7 +78,7 @@ public class PoolChanelObjectManager<T> {
 		return pchan.get_poolableChannel();
 	}
 	
-	private MQPooledConnObject boorowConnValidObject(long borrowMaxWaitMillis) throws Exception{
+	private MQPooledConnObject borrowConnValidObject(long borrowMaxWaitMillis) throws Exception{
 		MQPooledConnObject pooledConnObject = null;
 		for(;;){
 			pooledConnObject = poolConnObjectManager.borrowConnObject(borrowMaxWaitMillis);
@@ -108,7 +107,7 @@ public class PoolChanelObjectManager<T> {
 	
 	public void returnObject(PoolableChannel obj){
 		MQPooledChannelObject p = allObjects.get(new IdentityWrapper<PoolableChannel>(obj));
-		idleChannelObjects.addFirst(p);
+		idleChannelObjects.addLast(p);
 	}
 	
 	static class IdentityWrapper<T>{

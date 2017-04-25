@@ -106,7 +106,7 @@ public class PoolConnObjectManager<T> {
 	
 	public void returnObject(PoolableConnection  cnn){
 		MQPooledConnObject pp = allObjects.get(new IdentityWrapper<PoolableConnection>(cnn));
-		idleConnObjects.addFirst(pp);
+		idleConnObjects.addLast(pp);
 	}
 	static class IdentityWrapper<T>{
 		T instances;
