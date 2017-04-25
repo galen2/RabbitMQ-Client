@@ -40,15 +40,6 @@ public class PoolChanelObjectManager<T> {
 
 	
 
-	public int getMaxChannelConnTotal() {
-		return maxChannelConnTotal;
-	}
-
-
-	public void setMaxChannelConnTotal(int maxChannelConnTotal) {
-		this.maxChannelConnTotal = maxChannelConnTotal;
-	}
-
 
 	public void setMaxWaitMillis(long maxWaitMillis) {
 		this.maxWaitMillis = maxWaitMillis;
@@ -104,14 +95,6 @@ public class PoolChanelObjectManager<T> {
 	private MQPooledChannelObject createPooledChannelObject(MQPooledConnObject pooledConnObject) throws Exception{
 		final MQPooledChannelObject p;
 		try {
-			int localtMaxTotal = getMaxChannelConnTotal();
-			AtomicLong createCount = pooledConnObject.getChannelCount();
-			long newCreateCount = createCount.incrementAndGet();
-			if(newCreateCount > localtMaxTotal){
-				createCount.decrementAndGet();
-				return null;
-			}
-
 			PoolableConnection pooledConn = pooledConnObject.get_poolableConn();
 			p = factory.makeObject(this,pooledConn);
 			PoolableChannel channel = p.get_poolableChannel();
