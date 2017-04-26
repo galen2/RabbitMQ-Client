@@ -45,7 +45,6 @@ public class DelegatingChannel<C extends Channel> implements Channel{
 	}
 
 	public void addShutdownListener(ShutdownListener listener) {
-		// TODO Auto-generated method stub
 		
 	}
 

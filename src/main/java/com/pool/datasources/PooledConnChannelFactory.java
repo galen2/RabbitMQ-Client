@@ -25,9 +25,7 @@ public class PooledConnChannelFactory {
 		try {
 			initializeConnection(conn);
 		} catch (ConnException e) {
-			// make sure connection is close
 			try {
-				
 				conn.close();
 			} catch (Exception e2) {
 				

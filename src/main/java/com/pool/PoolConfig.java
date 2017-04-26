@@ -1,12 +1,14 @@
 package com.pool;
 
+import java.util.ArrayList;
+
 import com.rabbitmq.client.Address;
 
 public class PoolConfig {
 	private String userName;
 	private String passsWord;
 	private String virtualHost;
-	private Address[] serverPortAddress;
+	private ArrayList<Address> serverPortAddress;
 //	private int maxChannelTotal;//总共最大channel数
 	private int maxChannelConn = 2;//单个连接创建最大channel数
 	private int maxConnTotal;//最大连接数
@@ -34,13 +36,15 @@ public class PoolConfig {
 	public void setVirtualHost(String virtualHost) {
 		this.virtualHost = virtualHost;
 	}
-	public Address[] getServerPortAddress() {
+
+	
+	
+	public ArrayList<Address> getServerPortAddress() {
 		return serverPortAddress;
 	}
-	public void setServerPortAddress(Address[] serverPortAddress) {
+	public void setServerPortAddress(ArrayList<Address> serverPortAddress) {
 		this.serverPortAddress = serverPortAddress;
 	}
-	
 	public int getMaxChannelConn() {
 		return maxChannelConn;
 	}
