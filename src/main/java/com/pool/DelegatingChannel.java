@@ -30,8 +30,8 @@ import com.rabbitmq.client.ShutdownSignalException;
 public class DelegatingChannel<C extends Channel> implements Channel{
 	//真实的channel
 	private volatile C _channel;
-	private DelegatingConnection _conn ;
-	public DelegatingChannel(C channel,DelegatingConnection conn){
+	private DelegatingConnection<Connection> _conn ;
+	public DelegatingChannel(C channel,DelegatingConnection<Connection> conn){
 		this._channel = channel;
 		this._conn = conn;
 	}
@@ -40,10 +40,21 @@ public class DelegatingChannel<C extends Channel> implements Channel{
 		return _channel;
 	}
 	
-	public DelegatingConnection getDelegatingMQConnection(){
+	public DelegatingConnection<Connection> getDelegatingMQConnection(){
 		return _conn;
 	}
 
+	public void close() throws IOException, TimeoutException {
+		_channel.close();
+	}
+
+	public void close(int closeCode, String closeMessage) throws IOException,
+			TimeoutException {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	
 	public void addShutdownListener(ShutdownListener listener) {
 		
 	}
@@ -78,16 +89,7 @@ public class DelegatingChannel<C extends Channel> implements Channel{
 		return null;
 	}
 
-	public void close() throws IOException, TimeoutException {
-		// TODO Auto-generated method stub
-		
-	}
-
-	public void close(int closeCode, String closeMessage) throws IOException,
-			TimeoutException {
-		// TODO Auto-generated method stub
-		
-	}
+	
 
 	public boolean flowBlocked() {
 		// TODO Auto-generated method stub

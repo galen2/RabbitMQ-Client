@@ -8,10 +8,10 @@ import com.rabbitmq.client.Channel;
 
 public class MQPoolDataSource<C> {
 	
-    private final PoolChanelObjectManager<C> _channelObjectManager;
+    private final PoolChanelObjectManager _channelObjectManager;
 
 
-    public MQPoolDataSource(PoolChanelObjectManager<C> channelObjectManager){
+    public MQPoolDataSource(PoolChanelObjectManager channelObjectManager){
     	this._channelObjectManager = channelObjectManager;
     }
 	
@@ -28,7 +28,7 @@ public class MQPoolDataSource<C> {
 	}
 	
 	
-	private class PoolGrardChannelWrapper extends DelegatingChannel{
+	private class PoolGrardChannelWrapper extends DelegatingChannel<Channel>{
 		public PoolGrardChannelWrapper(PoolableChannel channel){
 			super(channel,channel.getDelegatingMQConnection());
 		}

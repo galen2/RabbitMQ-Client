@@ -1,6 +1,8 @@
 package com.pool.datasources;
 
 import com.pool.PoolConfig;
+import com.pool.PoolableChannel;
+import com.pool.PoolableConnection;
 import com.rabbitmq.client.ConnectionFactory;
 
 public class MQDataSource {
@@ -18,17 +20,44 @@ public class MQDataSource {
 		
 			createPoolConfig();
 			BrokerConnectionFactory brokerConnectionFactory = createBrokerConnectionFactory();
-			createPooledConnChannelFactory(brokerConnectionFactory);
+			PooledConnChannelFactory pooledConnChannelFactory = createPooledConnChannelFactory(brokerConnectionFactory);
 			
+			PoolConnObjectManager poolConnObjectManager = createPoolConnObjectManager(pooledConnChannelFactory);
+			PoolChanelObjectManager poolChanelObjectManager = createPoolChanelObjectManager(pooledConnChannelFactory, poolConnObjectManager);
+			
+			MQPoolDataSource<PoolableChannel> newDataSource = new MQPoolDataSource<PoolableChannel>(poolChanelObjectManager);
+			
+			try {
+				int initialSize = config.getInitialSize();
+				for (int i = 0 ; i < initialSize; i++) {
+					poolConnObjectManager.addObject();
+				}
+			} catch (Exception e) {
+				throw new PoolConnException("Error preloading poolConnObject",e);
+			}
+			dataSource = newDataSource;
 		}
-		
-		return null;
-		
+		return dataSource;
 	}
 	
 	private void createPoolConfig(){
 		config = new PoolConfig();
 		
+	}
+	
+	
+	private PoolChanelObjectManager createPoolChanelObjectManager(PooledConnChannelFactory pooledConnChannelFactory, PoolConnObjectManager poolConnObjectManager){
+		PoolChanelObjectManager poolChanelObjectManager = new PoolChanelObjectManager(pooledConnChannelFactory, poolConnObjectManager);
+		poolChanelObjectManager.setBlockWhenExhausted(config.isBlockWhenExhausted());
+		poolChanelObjectManager.setMaxChannelCountToConn(config.getMaxChannelCountToConn());
+		poolChanelObjectManager.setMaxWaitMillis(config.getMaxWaitMillis());
+		return poolChanelObjectManager;
+	}
+	
+	private PoolConnObjectManager createPoolConnObjectManager(PooledConnChannelFactory pooledConnChannelFactory){
+		PoolConnObjectManager connObjectManager = new PoolConnObjectManager(pooledConnChannelFactory);
+		connObjectManager.setMaxConnTotal(config.getMaxConnTotal());
+		return connObjectManager;
 	}
 	
 	private PooledConnChannelFactory createPooledConnChannelFactory(BrokerConnectionFactory brokerConnectionFactory){
@@ -45,13 +74,5 @@ public class MQDataSource {
 	    return brokerFactory;
 	}
 	
-	private ConnectionFactory crateConnectionFactory(){
-		ConnectionFactory factory = new ConnectionFactory();
-	    factory.setUsername(config.getUserName());
-	    factory.setPassword(config.getPasssWord());
-	    factory.setVirtualHost(config.getVirtualHost());
-	    return factory;
-	    
-	}
 	
 }

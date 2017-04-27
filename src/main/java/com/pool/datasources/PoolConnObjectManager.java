@@ -6,12 +6,10 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.atomic.AtomicLong;
 
 import com.pool.BasePoolConfig;
-import com.pool.PoolConfig;
 import com.pool.PoolableConnection;
 import com.pool.imp.MQPooledConnObject;
-import com.pool.imp.PollObjectMangerConfig;
 
-public class PoolConnObjectManager<T> extends BasePoolObjectManager<T>{
+public class PoolConnObjectManager extends BasePoolObjectManager<PoolableConnection>{
     private final PooledConnChannelFactory factory;
     private final LinkedBlockingDeque<MQPooledConnObject> idleConnObjects;
     
@@ -23,7 +21,7 @@ public class PoolConnObjectManager<T> extends BasePoolObjectManager<T>{
             new ConcurrentHashMap<IdentityWrapper<PoolableConnection>, MQPooledConnObject>();
     
 
-	public PoolConnObjectManager(PooledConnChannelFactory pooledConnectionFactory,PollObjectMangerConfig config){
+	public PoolConnObjectManager(PooledConnChannelFactory pooledConnectionFactory){
 		this.factory = pooledConnectionFactory;
 		idleConnObjects = new LinkedBlockingDeque<MQPooledConnObject>();
 	}
@@ -71,17 +69,12 @@ public class PoolConnObjectManager<T> extends BasePoolObjectManager<T>{
 	}
 	
 	
-	public void addObject() throws Exception{
+	protected void addObject() throws Exception{
 		MQPooledConnObject p = create();
 		idleConnObjects.addFirst(p);
 	}
 	
 	
-	public void setConfig(PoolConfig poolConfig){
-		
-	}
-
-
 
 	public int getMaxConnTotal() {
 		return maxConnTotal;

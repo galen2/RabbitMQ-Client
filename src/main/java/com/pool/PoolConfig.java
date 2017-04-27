@@ -9,15 +9,31 @@ public class PoolConfig {
 	private String passsWord;
 	private String virtualHost;
 	private ArrayList<Address> serverPortAddress;
-//	private int maxChannelTotal;//总共最大channel数
-	private int maxChannelConn = 2;//单个连接创建最大channel数
 	private int maxConnTotal;//最大连接数
-
-	
-	
+	private int initialSize = 0;//初始化连接数
 	private int minIdle;
 	private int maxIdel;
-	private volatile boolean blockWhenExhausted = BasePoolConfig.DEFAULT_BLOCK_WHEN_EXHAUSTED;
+	
+	//获取channel最大等待时间
+	private  long maxWaitMillis = BasePoolConfig.DEFAULT_MAX_WAIT_MILLIS;
+	 
+	//单个连接创建最大channel数
+    private  int maxChannelCountToConn = BasePoolConfig.DEFAULT_MAX_CHANNEL_TOTAL_TO_CONN;
+    
+    private  boolean blockWhenExhausted = BasePoolConfig.DEFAULT_BLOCK_WHEN_EXHAUSTED;
+    
+	public long getMaxWaitMillis() {
+		return maxWaitMillis;
+	}
+	public void setMaxWaitMillis(long maxWaitMillis) {
+		this.maxWaitMillis = maxWaitMillis;
+	}
+	public int getMaxChannelCountToConn() {
+		return maxChannelCountToConn;
+	}
+	public void setMaxChannelCountToConn(int maxChannelCountToConn) {
+		this.maxChannelCountToConn = maxChannelCountToConn;
+	}
 	public String getUserName() {
 		return userName;
 	}
@@ -39,18 +55,19 @@ public class PoolConfig {
 
 	
 	
+	public int getInitialSize() {
+		return initialSize;
+	}
+	public void setInitialSize(int initialSize) {
+		this.initialSize = initialSize;
+	}
 	public ArrayList<Address> getServerPortAddress() {
 		return serverPortAddress;
 	}
 	public void setServerPortAddress(ArrayList<Address> serverPortAddress) {
 		this.serverPortAddress = serverPortAddress;
 	}
-	public int getMaxChannelConn() {
-		return maxChannelConn;
-	}
-	public void setMaxChannelConn(int maxChannelConn) {
-		this.maxChannelConn = maxChannelConn;
-	}
+	
 	public int getMinIdle() {
 		return minIdle;
 	}

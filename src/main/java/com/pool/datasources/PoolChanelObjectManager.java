@@ -7,35 +7,33 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.pool.BasePoolConfig;
 import com.pool.PoolableChannel;
 import com.pool.PoolableConnection;
 import com.pool.imp.MQPooledChannelObject;
 import com.pool.imp.MQPooledConnObject;
-import com.pool.imp.PollObjectMangerConfig;
 
-public class PoolChanelObjectManager<T>  extends BasePoolObjectManager<T>{
+public class PoolChanelObjectManager  extends BasePoolObjectManager<PoolableChannel>{
     private final PooledConnChannelFactory factory;
     private final LinkedBlockingDeque<MQPooledChannelObject> idleChannelObjects;
     
     private final AtomicLong createConnCount = new AtomicLong(0);
     
-    private final PoolConnObjectManager<T> poolConnObjectManager;
+    private final PoolConnObjectManager poolConnObjectManager;
     
-    private volatile long maxWaitMillis = BasePoolConfig.DEFAULT_MAX_WAIT_MILLIS;
+    private  long maxWaitMillis ;
     
-    private volatile int maxChannelCountToConn = BasePoolConfig.DEFAULT_MAX_CHANNEL_TOTAL_TO_CONN;
+    private  int maxChannelCountToConn ;
     
-    private volatile boolean blockWhenExhausted = BasePoolConfig.DEFAULT_BLOCK_WHEN_EXHAUSTED;
+    private  boolean blockWhenExhausted ;
 
     private final Map<IdentityWrapper<PoolableChannel>, MQPooledChannelObject> allObjects =
             new ConcurrentHashMap<IdentityWrapper<PoolableChannel>, MQPooledChannelObject>();
     
     
-	public PoolChanelObjectManager(PooledConnChannelFactory pooledConnectionFactory,PollObjectMangerConfig config,PoolConnObjectManager<T> manager){
+	public PoolChanelObjectManager(PooledConnChannelFactory pooledConnectionFactory,PoolConnObjectManager poolConnObjectManager){
 		this.factory = pooledConnectionFactory;
 		idleChannelObjects = new LinkedBlockingDeque<MQPooledChannelObject>();
-		this.poolConnObjectManager = manager;
+		this.poolConnObjectManager = poolConnObjectManager;
 	}
 	
 	
