@@ -1,4 +1,4 @@
-package com;
+package com.liequ.rabbitmq;
 import java.io.IOException;
 import java.util.UUID;
 

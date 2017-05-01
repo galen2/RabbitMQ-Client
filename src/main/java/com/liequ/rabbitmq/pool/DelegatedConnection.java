@@ -1,4 +1,4 @@
-package com.pool;
+package com.liequ.rabbitmq.pool;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -10,161 +10,131 @@ import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ExceptionHandler;
 import com.rabbitmq.client.ShutdownListener;
 import com.rabbitmq.client.ShutdownSignalException;
-
-public class DelegatingConnection<C extends Connection> implements Connection{
-	
-	//为了安全封装真实的server连接，防止外部访问
+@SuppressWarnings("unchecked")
+public class DelegatedConnection<C extends Connection> implements Connection{
 	private volatile C _conn = null;
 
-	public DelegatingConnection(C conn){
+	public DelegatedConnection(C conn){
 		this._conn = conn;
 	}
 	
-	public Connection getDelegate() {
-		return getDelegateInternal();
-	}
-	//为了保护连接，只有子类可以访问这个真实连接，
 	protected Connection getDelegateInternal() {
 		return _conn;
 	}
 	
-	//此方法不对外开发
-	public Channel createChannel() throws IOException {
-		throw new RuntimeException("forbid create");
-//		return null;
+	public brokerChannel createChannel() throws IOException {
+		Channel cn = _conn.createChannel();
+		brokerChannel poolChannel = new brokerChannel(cn, (DelegatedConnection<Connection>) this);
+		return poolChannel;
 	}
-	
+	 
+	 public Channel createChannel(int channelNumber) throws IOException {
+		Channel cn = _conn.createChannel(channelNumber);
+		brokerChannel poolChannel = new brokerChannel(cn, (DelegatedConnection<Connection>) this);
+		return poolChannel;
+	}
+
 	
     protected final void setDelegateInternal(C conn) {
     	this._conn = conn;
     }
 	
 	public void addShutdownListener(ShutdownListener listener) {
-		// TODO Auto-generated method stub
+		_conn.addShutdownListener(listener);
 		
 	}
 
 	public void removeShutdownListener(ShutdownListener listener) {
-		// TODO Auto-generated method stub
-		
+		_conn.removeShutdownListener(listener);
 	}
 
 	public ShutdownSignalException getCloseReason() {
-		// TODO Auto-generated method stub
-		return null;
+		return _conn.getCloseReason();
 	}
 
 	public void notifyListeners() {
-		// TODO Auto-generated method stub
-		
+		_conn.notifyListeners();
 	}
 
 	public boolean isOpen() {
-		// TODO Auto-generated method stub
-		return false;
+		return _conn.isOpen();
 	}
 
 	public InetAddress getAddress() {
-		// TODO Auto-generated method stub
-		return null;
+		return _conn.getAddress();
 	}
 
 	public int getPort() {
-		// TODO Auto-generated method stub
-		return 0;
+		return _conn.getPort();
 	}
 
 	public int getChannelMax() {
-		// TODO Auto-generated method stub
-		return 0;
+		return _conn.getChannelMax();
 	}
 
 	public int getFrameMax() {
-		// TODO Auto-generated method stub
-		return 0;
+		return _conn.getFrameMax();
 	}
 
 	public int getHeartbeat() {
-		// TODO Auto-generated method stub
-		return 0;
+		return _conn.getHeartbeat();
 	}
 
 	public Map<String, Object> getClientProperties() {
-		// TODO Auto-generated method stub
-		return null;
+		return _conn.getClientProperties();
 	}
 
 	public Map<String, Object> getServerProperties() {
-		// TODO Auto-generated method stub
-		return null;
+		return _conn.getServerProperties();
 	}
-
 	
-
-	public Channel createChannel(int channelNumber) throws IOException {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	public void close() throws IOException {
-		// TODO Auto-generated method stub
-		
+		_conn.close();
 	}
 
 	public void close(int closeCode, String closeMessage) throws IOException {
-		// TODO Auto-generated method stub
-		
+		_conn.close(closeCode, closeMessage);
 	}
 
 	public void close(int timeout) throws IOException {
-		// TODO Auto-generated method stub
-		
+		_conn.close(timeout);
 	}
 
 	public void close(int closeCode, String closeMessage, int timeout)
 			throws IOException {
-		// TODO Auto-generated method stub
-		
+		_conn.close(closeCode, closeMessage, timeout);
 	}
 
 	public void abort() {
-		// TODO Auto-generated method stub
-		
+		_conn.abort();
 	}
 
 	public void abort(int closeCode, String closeMessage) {
-		// TODO Auto-generated method stub
-		
+		_conn.abort(closeCode, closeMessage);
 	}
 
 	public void abort(int timeout) {
-		// TODO Auto-generated method stub
-		
+		_conn.abort(timeout);
 	}
 
 	public void abort(int closeCode, String closeMessage, int timeout) {
-		// TODO Auto-generated method stub
-		
+		_conn.abort(closeCode, closeMessage, timeout);
 	}
 
 	public void addBlockedListener(BlockedListener listener) {
-		// TODO Auto-generated method stub
-		
+		_conn.addBlockedListener(listener);
 	}
 
 	public boolean removeBlockedListener(BlockedListener listener) {
-		// TODO Auto-generated method stub
-		return false;
+		return _conn.removeBlockedListener(listener);
 	}
 
 	public void clearBlockedListeners() {
-		// TODO Auto-generated method stub
-		
+		_conn.clearBlockedListeners();
 	}
 
 	public ExceptionHandler getExceptionHandler() {
-		// TODO Auto-generated method stub
-		return null;
+		return _conn.getExceptionHandler();
 	}
 	
 

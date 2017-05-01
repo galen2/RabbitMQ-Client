@@ -1,4 +1,4 @@
-package com.pool.datasources;
+package com.liequ.rabbitmq.pool;
 
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -7,35 +7,34 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.pool.PoolableChannel;
-import com.pool.PoolableConnection;
-import com.pool.imp.MQPooledChannelObject;
-import com.pool.imp.MQPooledConnObject;
-
-public class PoolChanelObjectManager  extends BasePoolObjectManager<PoolableChannel>{
-    private final PooledConnChannelFactory factory;
-    private final LinkedBlockingDeque<MQPooledChannelObject> idleChannelObjects;
+public class BrokerChanelObjectManager  extends BaseObjectManager<brokerChannel>{
+	
+    private final ConnChannelFactory factory;
     
-    private final AtomicLong createConnCount = new AtomicLong(0);
+    private final LinkedBlockingDeque<ChannelObject> idleChannelObjects;
     
-    private final PoolConnObjectManager poolConnObjectManager;
+    private final ConnectionObjectManager poolConnObjectManager;
     
     private  long maxWaitMillis ;
     
-    private  int maxChannelCountToConn ;
+    private  int maxChannelCountPerConn ;
     
     private  boolean blockWhenExhausted ;
 
-    private final Map<IdentityWrapper<PoolableChannel>, MQPooledChannelObject> allObjects =
-            new ConcurrentHashMap<IdentityWrapper<PoolableChannel>, MQPooledChannelObject>();
+    private final Map<IdentityWrapper<brokerChannel>, ChannelObject> allObjects =
+            new ConcurrentHashMap<IdentityWrapper<brokerChannel>, ChannelObject>();
     
     
-	public PoolChanelObjectManager(PooledConnChannelFactory pooledConnectionFactory,PoolConnObjectManager poolConnObjectManager){
+	public BrokerChanelObjectManager(ConnChannelFactory pooledConnectionFactory,ConnectionObjectManager poolConnObjectManager){
 		this.factory = pooledConnectionFactory;
-		idleChannelObjects = new LinkedBlockingDeque<MQPooledChannelObject>();
+		idleChannelObjects = new LinkedBlockingDeque<ChannelObject>();
 		this.poolConnObjectManager = poolConnObjectManager;
 	}
 	
+	
+	public brokerChannel borrowObject() throws Exception{
+		return borrowObject(getMaxWaitMillis());
+	}
 	
 	/**
 	 * 创建连接池的channel
@@ -44,12 +43,13 @@ public class PoolChanelObjectManager  extends BasePoolObjectManager<PoolableChan
 	 * @return
 	 * @throws Exception
 	 */
-	public PoolableChannel borrowObject(long borrowMaxWaitMillis) throws Exception{
-		MQPooledChannelObject pchan = null;
+	public brokerChannel borrowObject(long borrowMaxWaitMillis) throws Exception{
+		ChannelObject pchan = null;
 		while (pchan == null) {
 			pchan = idleChannelObjects.pollFirst();
 			if(pchan == null ){
 				pchan = create();
+				
 				if (pchan == null) {
 			        boolean blockWhenExhausted = getBlockWhenExhausted();
 					if(blockWhenExhausted){
@@ -71,25 +71,29 @@ public class PoolChanelObjectManager  extends BasePoolObjectManager<PoolableChan
 	}
 	
 	
-	private MQPooledChannelObject create() throws Exception{
-		MQPooledConnObject pooledConnObject = borrowConnValidObject();
+	private ChannelObject create() throws Exception{
+		ConnectionObject pooledConnObject = borrowConnValidObject();
 		if (pooledConnObject == null) {
 			return null;
 		}
-		final MQPooledChannelObject p;
+		AtomicLong chanelCount = pooledConnObject.getChannelCount();
+		chanelCount.incrementAndGet();
+
+		final ChannelObject p;
 		try {
-			PoolableConnection pooledConn = pooledConnObject.get_poolableConn();
+			BrokerConnection pooledConn = pooledConnObject.get_poolableConn();
 			p = factory.makeObject(this,pooledConn);
-			PoolableChannel channel = p.get_poolableChannel();
-			allObjects.put(new IdentityWrapper<PoolableChannel>(channel), p);
+			brokerChannel channel = p.get_poolableChannel();
+			allObjects.put(new IdentityWrapper<brokerChannel>(channel), p);
 		} catch (Exception e) {
+			chanelCount.decrementAndGet();
 			throw e;
 		}
 		return p;
 	}
 	
-	private MQPooledConnObject borrowConnValidObject() throws Exception{
-		MQPooledConnObject pooledConnObject = null;
+	private ConnectionObject borrowConnValidObject() throws Exception{
+		ConnectionObject pooledConnObject = null;
 		for (;;) {
 			pooledConnObject = poolConnObjectManager.borrowConnObject();
 			if(pooledConnObject == null){
@@ -97,7 +101,7 @@ public class PoolChanelObjectManager  extends BasePoolObjectManager<PoolableChan
 			}
 			AtomicLong count = pooledConnObject.getChannelCount();
 			int maxChannelCountToConn = getMaxChannelCountToConn();
-			if (count.get() <= maxChannelCountToConn) {
+			if (count.get() < maxChannelCountToConn) {
 				poolConnObjectManager.returnObject(pooledConnObject.get_poolableConn());
 				break;
 			}
@@ -105,15 +109,15 @@ public class PoolChanelObjectManager  extends BasePoolObjectManager<PoolableChan
 		return pooledConnObject;
 	}
 	
-	
-	public void returnObject(PoolableChannel obj){
-		MQPooledChannelObject p = allObjects.get(new IdentityWrapper<PoolableChannel>(obj));
-		idleChannelObjects.addLast(p);
+	public void addObject() throws Exception{
+		ChannelObject p = create();
+		idleChannelObjects.addFirst(p);
 	}
 	
-	public void addObject() throws Exception{
-		MQPooledChannelObject p = create();
-		idleChannelObjects.addFirst(p);
+	
+	protected void returnObject(brokerChannel obj){
+		ChannelObject p = allObjects.get(new IdentityWrapper<brokerChannel>(obj));
+		idleChannelObjects.addLast(p);
 	}
 	
 
@@ -121,36 +125,25 @@ public class PoolChanelObjectManager  extends BasePoolObjectManager<PoolableChan
 		return blockWhenExhausted;
 	}
 
-
 	public void setBlockWhenExhausted(boolean blockWhenExhausted) {
 		this.blockWhenExhausted = blockWhenExhausted;
 	}
 
-
 	public int getMaxChannelCountToConn() {
-		return maxChannelCountToConn;
+		return maxChannelCountPerConn;
 	}
 
-
-	public void setMaxChannelCountToConn(int maxChannelCountToConn) {
-		this.maxChannelCountToConn = maxChannelCountToConn;
+	public void setMaxChannelCountToConn(int maxChannelCountPerConn) {
+		this.maxChannelCountPerConn = maxChannelCountPerConn;
 	}
 	public long getMaxWaitMillis() {
 		return maxWaitMillis;
 	}
 
-	
-
-
 	public void setMaxWaitMillis(long maxWaitMillis) {
 		this.maxWaitMillis = maxWaitMillis;
 	}
-
-
-
 	
-	public PoolableChannel borrowObject() throws Exception{
-		return borrowObject(getMaxWaitMillis());
-	}
+	
 	
 }

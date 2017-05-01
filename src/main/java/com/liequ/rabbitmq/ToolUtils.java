@@ -1,4 +1,4 @@
-package com;
+package com.liequ.rabbitmq;
 // Copyright (c) 2007-Present Pivotal Software, Inc.  All rights reserved.
 //
 // This software, the RabbitMQ Java client library, is triple-licensed under the

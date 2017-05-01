@@ -1,10 +1,9 @@
-package com.pool;
+package com.liequ.rabbitmq.pool;
 
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
-import com.pool.DelegatingConnection;
 import com.rabbitmq.client.AMQP.Basic.RecoverOk;
 import com.rabbitmq.client.AMQP.BasicProperties;
 import com.rabbitmq.client.AMQP.Exchange.BindOk;
@@ -27,11 +26,10 @@ import com.rabbitmq.client.ReturnListener;
 import com.rabbitmq.client.ShutdownListener;
 import com.rabbitmq.client.ShutdownSignalException;
 
-public class DelegatingChannel<C extends Channel> implements Channel{
-	//真实的channel
+public class DelegatedChannel<C extends Channel> implements Channel{
 	private volatile C _channel;
-	private DelegatingConnection<Connection> _conn ;
-	public DelegatingChannel(C channel,DelegatingConnection<Connection> conn){
+	private DelegatedConnection<Connection> _conn ;
+	public DelegatedChannel(C channel,DelegatedConnection<Connection> conn){
 		this._channel = channel;
 		this._conn = conn;
 	}
@@ -39,478 +37,427 @@ public class DelegatingChannel<C extends Channel> implements Channel{
 	protected Channel getInternalChannel(){
 		return _channel;
 	}
+
+	protected final C getDelegateInternal(){
+		return _channel;
+	}
 	
-	public DelegatingConnection<Connection> getDelegatingMQConnection(){
+	public void setDelegate(C c) {
+	  _channel = c;
+    }
+
+	protected DelegatedConnection<Connection> getDelegateConnectionInterval(){
 		return _conn;
 	}
 
+	
+   /**
+    * 获取底层连接对象：框架使用
+    * @return
+    */
+	protected final Channel getInnermostDelegateInternal() {
+	  Channel c = _channel;
+        while(c != null && c instanceof DelegatedChannel) {
+            c = ((DelegatedChannel<?>)c).getDelegateInternal();
+            if(this == c) {
+                return null;
+            }
+        }
+        return c;
+    }
+	
 	public void close() throws IOException, TimeoutException {
 		_channel.close();
 	}
 
 	public void close(int closeCode, String closeMessage) throws IOException,
 			TimeoutException {
-		// TODO Auto-generated method stub
-		
+		_channel.close(closeCode, closeMessage);
 	}
 	
 	
 	public void addShutdownListener(ShutdownListener listener) {
-		
+		_channel.addShutdownListener(listener);
 	}
 
 	public void removeShutdownListener(ShutdownListener listener) {
-		// TODO Auto-generated method stub
+		_channel.removeShutdownListener(listener);
 		
 	}
 
 	public ShutdownSignalException getCloseReason() {
-		// TODO Auto-generated method stub
-		return null;
+		return _channel.getCloseReason();
 	}
 
 	public void notifyListeners() {
-		// TODO Auto-generated method stub
-		
+		_channel.notifyListeners();
 	}
 
 	public boolean isOpen() {
-		// TODO Auto-generated method stub
-		return false;
+		return _channel.isOpen();
 	}
 
 	public int getChannelNumber() {
-		// TODO Auto-generated method stub
-		return 0;
+		return _channel.getChannelNumber();
 	}
 
 	public Connection getConnection() {
-		// TODO Auto-generated method stub
-		return null;
+		return _channel.getConnection();
 	}
 
 	
 
 	public boolean flowBlocked() {
-		// TODO Auto-generated method stub
-		return false;
+		return _channel.flowBlocked();
 	}
 
 	public void abort() throws IOException {
-		// TODO Auto-generated method stub
-		
+		_channel.abort();
 	}
 
 	public void abort(int closeCode, String closeMessage) throws IOException {
-		// TODO Auto-generated method stub
-		
+		_channel.abort(closeCode, closeMessage);
 	}
 
 	public void addReturnListener(ReturnListener listener) {
-		// TODO Auto-generated method stub
-		
+		_channel.addReturnListener(listener);
 	}
 
 	public boolean removeReturnListener(ReturnListener listener) {
-		// TODO Auto-generated method stub
-		return false;
+		return _channel.removeReturnListener(listener);
 	}
 
 	public void clearReturnListeners() {
-		// TODO Auto-generated method stub
-		
+		_channel.clearReturnListeners();
 	}
-
+	
+	@Deprecated
 	public void addFlowListener(FlowListener listener) {
-		// TODO Auto-generated method stub
-		
 	}
-
+	
+	@Deprecated
 	public boolean removeFlowListener(FlowListener listener) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
+	@Deprecated
 	public void clearFlowListeners() {
-		// TODO Auto-generated method stub
-		
 	}
 
 	public void addConfirmListener(ConfirmListener listener) {
-		// TODO Auto-generated method stub
-		
+		_channel.addConfirmListener(listener);
 	}
 
 	public boolean removeConfirmListener(ConfirmListener listener) {
-		// TODO Auto-generated method stub
-		return false;
+		return _channel.removeConfirmListener(listener);
 	}
 
 	public void clearConfirmListeners() {
-		// TODO Auto-generated method stub
-		
+		_channel.clearConfirmListeners();
 	}
 
 	public Consumer getDefaultConsumer() {
-		// TODO Auto-generated method stub
-		return null;
+		return _channel.getDefaultConsumer();
 	}
 
 	public void setDefaultConsumer(Consumer consumer) {
-		// TODO Auto-generated method stub
-		
+		_channel.setDefaultConsumer(consumer);
 	}
 
 	public void basicQos(int prefetchSize, int prefetchCount, boolean global)
 			throws IOException {
-		// TODO Auto-generated method stub
+		_channel.basicQos(prefetchSize, prefetchCount, global);
 		
 	}
 
 	public void basicQos(int prefetchCount, boolean global) throws IOException {
-		// TODO Auto-generated method stub
-		
+		_channel.basicQos( prefetchCount,  global);
 	}
 
 	public void basicQos(int prefetchCount) throws IOException {
-		// TODO Auto-generated method stub
-		
+		_channel.basicQos(prefetchCount);
 	}
 
 	public void basicPublish(String exchange, String routingKey,
 			BasicProperties props, byte[] body) throws IOException {
-		// TODO Auto-generated method stub
-		
+		_channel.basicPublish(exchange, routingKey, props, body);
 	}
 
 	public void basicPublish(String exchange, String routingKey,
 			boolean mandatory, BasicProperties props, byte[] body)
 			throws IOException {
-		// TODO Auto-generated method stub
-		
+		_channel.basicPublish(exchange, routingKey, mandatory, props, body);
 	}
 
 	public void basicPublish(String exchange, String routingKey,
 			boolean mandatory, boolean immediate, BasicProperties props,
 			byte[] body) throws IOException {
-		// TODO Auto-generated method stub
-		
+		_channel.basicPublish(exchange, routingKey, mandatory, immediate, props, body);
 	}
 
 	public DeclareOk exchangeDeclare(String exchange, String type)
 			throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return _channel.exchangeDeclare(exchange, type);
 	}
 
 	public DeclareOk exchangeDeclare(String exchange, String type,
 			boolean durable) throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return _channel.exchangeDeclare(exchange, type, durable);
 	}
 
 	public DeclareOk exchangeDeclare(String exchange, String type,
 			boolean durable, boolean autoDelete, Map<String, Object> arguments)
 			throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return _channel.exchangeDeclare(exchange, type, durable, autoDelete, arguments);
 	}
 
 	public DeclareOk exchangeDeclare(String exchange, String type,
 			boolean durable, boolean autoDelete, boolean internal,
 			Map<String, Object> arguments) throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return _channel.exchangeDeclare(exchange, type, durable, autoDelete, internal, arguments);
 	}
 
 	public void exchangeDeclareNoWait(String exchange, String type,
 			boolean durable, boolean autoDelete, boolean internal,
 			Map<String, Object> arguments) throws IOException {
-		// TODO Auto-generated method stub
-		
+		_channel.exchangeDeclareNoWait(exchange, type, durable, autoDelete, internal, arguments);
 	}
 
 	public DeclareOk exchangeDeclarePassive(String name) throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return _channel.exchangeDeclarePassive(name);
 	}
 
 	public DeleteOk exchangeDelete(String exchange, boolean ifUnused)
 			throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return _channel.exchangeDelete(exchange);
 	}
 
 	public void exchangeDeleteNoWait(String exchange, boolean ifUnused)
 			throws IOException {
-		// TODO Auto-generated method stub
-		
+		_channel.exchangeDeleteNoWait(exchange, ifUnused);
 	}
 
 	public DeleteOk exchangeDelete(String exchange) throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return _channel.exchangeDelete(exchange);
 	}
 
 	public BindOk exchangeBind(String destination, String source,
 			String routingKey) throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return _channel.exchangeBind(destination, source, routingKey);
 	}
 
 	public BindOk exchangeBind(String destination, String source,
 			String routingKey, Map<String, Object> arguments)
 			throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return _channel.exchangeBind(destination, source, routingKey, arguments);
 	}
 
 	public void exchangeBindNoWait(String destination, String source,
 			String routingKey, Map<String, Object> arguments)
 			throws IOException {
-		// TODO Auto-generated method stub
-		
+		_channel.exchangeBindNoWait(destination, source, routingKey, arguments);
 	}
 
 	public UnbindOk exchangeUnbind(String destination, String source,
 			String routingKey) throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return _channel.exchangeUnbind(destination, source, routingKey);
 	}
 
 	public UnbindOk exchangeUnbind(String destination, String source,
 			String routingKey, Map<String, Object> arguments)
 			throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return _channel.exchangeUnbind(destination, source, routingKey);
 	}
 
 	public void exchangeUnbindNoWait(String destination, String source,
 			String routingKey, Map<String, Object> arguments)
 			throws IOException {
-		// TODO Auto-generated method stub
+		_channel.exchangeUnbindNoWait(destination, source, routingKey, arguments);
 		
 	}
 
 	public com.rabbitmq.client.AMQP.Queue.DeclareOk queueDeclare()
 			throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return _channel.queueDeclare();
 	}
 
 	public com.rabbitmq.client.AMQP.Queue.DeclareOk queueDeclare(String queue,
 			boolean durable, boolean exclusive, boolean autoDelete,
 			Map<String, Object> arguments) throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return _channel.queueDeclare(queue, durable, exclusive, autoDelete, arguments);
 	}
 
 	public void queueDeclareNoWait(String queue, boolean durable,
 			boolean exclusive, boolean autoDelete, Map<String, Object> arguments)
 			throws IOException {
-		// TODO Auto-generated method stub
+		_channel.queueDeclareNoWait(queue, durable, exclusive, autoDelete, arguments);
 		
 	}
 
 	public com.rabbitmq.client.AMQP.Queue.DeclareOk queueDeclarePassive(
 			String queue) throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return _channel.queueDeclarePassive(queue);
 	}
 
 	public com.rabbitmq.client.AMQP.Queue.DeleteOk queueDelete(String queue)
 			throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return _channel.queueDelete(queue);
 	}
 
 	public com.rabbitmq.client.AMQP.Queue.DeleteOk queueDelete(String queue,
 			boolean ifUnused, boolean ifEmpty) throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return _channel.queueDelete(queue, ifUnused, ifEmpty);
 	}
 
 	public void queueDeleteNoWait(String queue, boolean ifUnused,
 			boolean ifEmpty) throws IOException {
-		// TODO Auto-generated method stub
-		
+		_channel.queueDeleteNoWait(queue, ifUnused, ifEmpty);
 	}
 
 	public com.rabbitmq.client.AMQP.Queue.BindOk queueBind(String queue,
 			String exchange, String routingKey) throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return _channel.queueBind(queue, exchange, routingKey);
 	}
 
 	public com.rabbitmq.client.AMQP.Queue.BindOk queueBind(String queue,
 			String exchange, String routingKey, Map<String, Object> arguments)
 			throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return _channel.queueBind(queue, exchange, routingKey, arguments);
 	}
 
 	public void queueBindNoWait(String queue, String exchange,
 			String routingKey, Map<String, Object> arguments)
 			throws IOException {
-		// TODO Auto-generated method stub
-		
+		_channel.queueBindNoWait(queue, exchange, routingKey, arguments);
 	}
 
 	public com.rabbitmq.client.AMQP.Queue.UnbindOk queueUnbind(String queue,
 			String exchange, String routingKey) throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return _channel.queueUnbind(queue, exchange, routingKey);
 	}
 
 	public com.rabbitmq.client.AMQP.Queue.UnbindOk queueUnbind(String queue,
 			String exchange, String routingKey, Map<String, Object> arguments)
 			throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return _channel.queueUnbind(queue, exchange, routingKey, arguments);
 	}
 
 	public PurgeOk queuePurge(String queue) throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return _channel.queuePurge(queue);
 	}
 
 	public GetResponse basicGet(String queue, boolean autoAck)
 			throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return _channel.basicGet(queue, autoAck);
 	}
 
 	public void basicAck(long deliveryTag, boolean multiple) throws IOException {
-		// TODO Auto-generated method stub
-		
+		_channel.basicAck(deliveryTag, multiple);
 	}
 
 	public void basicNack(long deliveryTag, boolean multiple, boolean requeue)
 			throws IOException {
-		// TODO Auto-generated method stub
-		
+		_channel.basicNack(deliveryTag, multiple, requeue);
 	}
 
 	public void basicReject(long deliveryTag, boolean requeue)
 			throws IOException {
-		// TODO Auto-generated method stub
-		
+		_channel.basicReject(deliveryTag, requeue);
 	}
 
 	public String basicConsume(String queue, Consumer callback)
 			throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return _channel.basicConsume(queue, callback);
 	}
 
 	public String basicConsume(String queue, boolean autoAck, Consumer callback)
 			throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return _channel.basicConsume(queue, autoAck, callback);
 	}
 
 	public String basicConsume(String queue, boolean autoAck,
 			Map<String, Object> arguments, Consumer callback)
 			throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return _channel.basicConsume(queue, autoAck, arguments, callback);
 	}
 
 	public String basicConsume(String queue, boolean autoAck,
 			String consumerTag, Consumer callback) throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return _channel.basicConsume(queue, autoAck,consumerTag, callback);
 	}
 
 	public String basicConsume(String queue, boolean autoAck,
 			String consumerTag, boolean noLocal, boolean exclusive,
 			Map<String, Object> arguments, Consumer callback)
 			throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return _channel.basicConsume(queue, autoAck, consumerTag, noLocal, exclusive, arguments, callback);
 	}
 
 	public void basicCancel(String consumerTag) throws IOException {
-		// TODO Auto-generated method stub
-		
+		_channel.basicCancel(consumerTag);
 	}
 
 	public RecoverOk basicRecover() throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return _channel.basicRecover();
 	}
 
 	public RecoverOk basicRecover(boolean requeue) throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return _channel.basicRecover(requeue);
 	}
 
 	public SelectOk txSelect() throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return _channel.txSelect();
 	}
 
 	public CommitOk txCommit() throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return _channel.txCommit();
 	}
 
 	public RollbackOk txRollback() throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return _channel.txRollback();
 	}
 
 	public com.rabbitmq.client.AMQP.Confirm.SelectOk confirmSelect()
 			throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return _channel.confirmSelect();
 	}
 
 	public long getNextPublishSeqNo() {
-		// TODO Auto-generated method stub
-		return 0;
+		return _channel.getNextPublishSeqNo();
 	}
 
 	public boolean waitForConfirms() throws InterruptedException {
-		// TODO Auto-generated method stub
-		return false;
+		return _channel.waitForConfirms();
 	}
 
 	public boolean waitForConfirms(long timeout) throws InterruptedException,
 			TimeoutException {
-		// TODO Auto-generated method stub
-		return false;
+		return _channel.waitForConfirms(timeout);
 	}
 
 	public void waitForConfirmsOrDie() throws IOException, InterruptedException {
-		// TODO Auto-generated method stub
-		
+		_channel.waitForConfirmsOrDie();
 	}
 
 	public void waitForConfirmsOrDie(long timeout) throws IOException,
 			InterruptedException, TimeoutException {
-		// TODO Auto-generated method stub
-		
+		_channel.waitForConfirmsOrDie(timeout);
 	}
 
 	public void asyncRpc(Method method) throws IOException {
-		// TODO Auto-generated method stub
-		
+		_channel.asyncRpc(method);
 	}
 
 	public Command rpc(Method method) throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		return _channel.rpc(method);
 	}
 
 	public long messageCount(String queue) throws IOException {
-		// TODO Auto-generated method stub
-		return 0;
+		return _channel.messageCount(queue);
 	}
 
 	public long consumerCount(String queue) throws IOException {
-		// TODO Auto-generated method stub
-		return 0;
+		return _channel.consumerCount(queue);
 	}
 	
 

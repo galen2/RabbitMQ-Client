@@ -1,10 +1,8 @@
-package com.pool.imp;
+package com.liequ.rabbitmq.pool;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-import com.pool.PoolableConnection;
-
-public class MQPooledConnObject {
+public class ConnectionObject {
 	private final long createTime = System.currentTimeMillis();
     private volatile long lastBorrowTime = createTime;
     private volatile long lastUseTime = createTime;
@@ -13,13 +11,13 @@ public class MQPooledConnObject {
     
     public final AtomicLong channelCount = new AtomicLong(0);//已经创建的channel数
 
-    private final PoolableConnection _poolableConn;
+    private final BrokerConnection _poolableConn;
 
-    public MQPooledConnObject(PoolableConnection poolableConnection){
+    public ConnectionObject(BrokerConnection poolableConnection){
     	this._poolableConn = poolableConnection;
     }
 
-	public PoolableConnection get_poolableConn() {
+	public BrokerConnection get_poolableConn() {
 		return _poolableConn;
 	}
 	

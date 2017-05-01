@@ -1,7 +1,7 @@
-package com.pool.datasources;
+package com.liequ.rabbitmq.pool;
 
 
-public abstract class BasePoolObjectManager<T> {
+public abstract class BaseObjectManager<T> {
 
 	static class IdentityWrapper<T>{
 		T instances;

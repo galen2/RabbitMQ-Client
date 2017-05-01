@@ -1,18 +1,16 @@
-package com.pool;
+package com.liequ.rabbitmq.pool;
 
 import java.io.IOException;
-import java.util.concurrent.TimeoutException;
 
 import javax.management.ObjectName;
 
-import com.pool.datasources.PoolConnObjectManager;
 import com.rabbitmq.client.Connection;
 
-public class PoolableConnection extends  DelegatingConnection<Connection>{
+public class BrokerConnection extends  DelegatedConnection<Connection>{
 	 private final ObjectName _jmxName;
-	 private final PoolConnObjectManager manager;
+	 private final ConnectionObjectManager manager;
 
-	public PoolableConnection(PoolConnObjectManager manager,Connection conn,ObjectName jmx){
+	public BrokerConnection(ConnectionObjectManager manager,Connection conn,ObjectName jmx){
 		super(conn);
 		this._jmxName = jmx;
 		this.manager  = manager;

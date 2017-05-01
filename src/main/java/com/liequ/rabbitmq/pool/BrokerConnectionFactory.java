@@ -1,4 +1,4 @@
-package com.pool.datasources;
+package com.liequ.rabbitmq.pool;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -26,9 +26,9 @@ public class BrokerConnectionFactory {
 		return _connectionFactory.newConnection(_serverPortAddress);
 	}
 	
-	public Channel createChannel(Connection conn) throws IOException{
+	/*public Channel createChannel(Connection conn) throws IOException{
 		return conn.createChannel();
-	}
+	}*/
 	
 	@Override
     public String toString() {

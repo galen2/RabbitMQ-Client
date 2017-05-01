@@ -1,21 +1,19 @@
-package com.pool.imp;
+package com.liequ.rabbitmq.pool;
 
-import com.pool.PoolableChannel;
-import com.pool.PoolableConnection;
 
-public class MQPooledChannelObject {
+public class ChannelObject {
 	private final long createTime = System.currentTimeMillis();
     private volatile long lastBorrowTime = createTime;
     private volatile long lastUseTime = createTime;
     private volatile long lastReturnTime = createTime;
     private volatile long borrowedCount = 0;
-    private final PoolableChannel _poolableChannel;
+    private final brokerChannel _poolableChannel;
     
-    public MQPooledChannelObject(PoolableChannel poolableChannel){
+    public ChannelObject(brokerChannel poolableChannel){
     	this._poolableChannel = poolableChannel;
     }
 
-	public PoolableChannel get_poolableChannel() {
+	public brokerChannel get_poolableChannel() {
 		return _poolableChannel;
 	}
 

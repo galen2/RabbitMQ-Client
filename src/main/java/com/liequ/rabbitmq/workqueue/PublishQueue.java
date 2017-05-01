@@ -1,11 +1,12 @@
-package workqueue;
+package com.liequ.rabbitmq.workqueue;
 
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
-import com.PublickCallBack;
-import com.QueueFactory;
-import com.ToolUtils;
+
+import com.liequ.rabbitmq.PublickCallBack;
+import com.liequ.rabbitmq.QueueFactory;
+import com.liequ.rabbitmq.ToolUtils;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.ConfirmListener;
