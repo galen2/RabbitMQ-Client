@@ -29,6 +29,8 @@ import com.rabbitmq.client.ShutdownSignalException;
 public class DelegatedChannel<C extends Channel> implements Channel{
 	private volatile C _channel;
 	private DelegatedConnection<Connection> _conn ;
+    private volatile boolean _closed = false;
+
 	public DelegatedChannel(C channel,DelegatedConnection<Connection> conn){
 		this._channel = channel;
 		this._conn = conn;
@@ -67,12 +69,18 @@ public class DelegatedChannel<C extends Channel> implements Channel{
     }
 	
 	public void close() throws IOException, TimeoutException {
-		_channel.close();
+		if (!_closed) {
+			_channel.close();
+			_closed = true;
+		}
 	}
 
 	public void close(int closeCode, String closeMessage) throws IOException,
 			TimeoutException {
-		_channel.close(closeCode, closeMessage);
+		if (!_closed) { 
+			_channel.close(closeCode, closeMessage);
+			_closed = true;
+		}
 	}
 	
 	

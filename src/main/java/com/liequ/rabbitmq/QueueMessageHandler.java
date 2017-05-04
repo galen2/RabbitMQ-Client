@@ -1,10 +1,13 @@
 package com.liequ.rabbitmq;
 
+import java.util.Map;
+
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.QueueingConsumer.Delivery;
 
 public interface QueueMessageHandler {
-	void extendChannel (Channel channel);
+	
+	void initArgument(Channel channel, Map<String, Object> queueArguments);
 	
 	void consumer(Delivery delivery);
 	
