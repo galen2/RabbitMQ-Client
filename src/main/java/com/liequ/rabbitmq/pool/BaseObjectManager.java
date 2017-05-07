@@ -14,7 +14,6 @@ public abstract class BaseObjectManager<T> {
 		}
 		@SuppressWarnings("rawtypes")
 		public boolean equals(Object obj) {
-			// TODO Auto-generated method stub
 			return ((IdentityWrapper)obj).instances == instances;
 		}
 		

@@ -11,7 +11,7 @@ import com.rabbitmq.client.ConnectionFactory;
 public class BrokerDataSource {
 	
 	private volatile BrokerBaseSource dataSource = null;
-	private brokerConfig config = null;
+	private BrokerConfig config = null;
 	private final String brokerName;
 	public BrokerDataSource(String brokerName){
 		this.brokerName = brokerName;
@@ -30,7 +30,7 @@ public class BrokerDataSource {
 			
 			createJmx();
 
-			config = new brokerConfig();
+			config = new BrokerConfig();
 			config.parse(brokerName);
 			
 			BrokerConnectionFactory brokerConnectionFactory = createBrokerConnectionFactory();

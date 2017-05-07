@@ -2,6 +2,11 @@ package com.liequ.rabbitmq.pool;
 
 public class BrokerException extends RuntimeException{
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -7662140994176633994L;
+
 	public BrokerException() {
         super();
     }

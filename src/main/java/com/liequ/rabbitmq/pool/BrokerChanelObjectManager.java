@@ -69,13 +69,6 @@ public class BrokerChanelObjectManager  extends BaseObjectManager<BrokerChannel>
 		return borrowObject(getMaxWaitMillis());
 	}
 	
-	/**
-	 * 创建连接池的channel
-	 * @param pooledConnObject
-	 * @param borrowMaxWaitMillis
-	 * @return
-	 * @throws Exception
-	 */
 	public BrokerChannel borrowObject(long borrowMaxWaitMillis) throws Exception{
 		ChannelObject pchan = null;
 		while (pchan == null) {
@@ -109,7 +102,6 @@ public class BrokerChanelObjectManager  extends BaseObjectManager<BrokerChannel>
 				}
 			}
 		}
-		
 		return pchan.getPoolableChannel();
 	}
 	
@@ -132,7 +124,6 @@ public class BrokerChanelObjectManager  extends BaseObjectManager<BrokerChannel>
 			BrokerConnection pooledConn = pooledConnObject.get_poolableConn();
 			BrokerChannel channel = factory.makeObject(this,pooledConn);
 			p = new ChannelObject(channel, pooledConnObject);
-//			BrokerChannel channel = p.getPoolableChannel();
 			createChannelCount.incrementAndGet();
 			allObjects.put(new IdentityWrapper<BrokerChannel>(channel), p);
 		} catch (Exception e) {

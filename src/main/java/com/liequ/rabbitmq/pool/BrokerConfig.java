@@ -11,9 +11,9 @@ import com.liequ.rabbitmq.exception.ConfigException;
 import com.liequ.rabbitmq.util.PropertiesManager;
 import com.rabbitmq.client.Address;
 
-public class brokerConfig {
+public class BrokerConfig {
 	
-    private static final Logger LOG = LoggerFactory.getLogger(brokerConfig.class);
+    private static final Logger LOG = LoggerFactory.getLogger(BrokerConfig.class);
 
 	private String userName;
 	private String passsWord;
