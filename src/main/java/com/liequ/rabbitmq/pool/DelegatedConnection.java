@@ -22,18 +22,18 @@ public class DelegatedConnection<C extends Connection> implements Connection{
 		return _conn;
 	}
 	
-	public brokerChannel createChannel() throws IOException {
-		Channel cn = _conn.createChannel();
-		brokerChannel poolChannel = new brokerChannel(cn, (DelegatedConnection<Connection>) this);
+	public BrokerChannel createChannel() throws IOException {
+		Channel cn = getDelegateInternal().createChannel();
+		BrokerChannel poolChannel = new BrokerChannel(cn, (DelegatedConnection<Connection>) this);
 		return poolChannel;
 	}
 	 
 	 public Channel createChannel(int channelNumber) throws IOException {
 		Channel cn = _conn.createChannel(channelNumber);
-		brokerChannel poolChannel = new brokerChannel(cn, (DelegatedConnection<Connection>) this);
+		BrokerChannel poolChannel = new BrokerChannel(cn, (DelegatedConnection<Connection>) this);
 		return poolChannel;
 	}
-
+	 
 	
     protected final void setDelegateInternal(C conn) {
     	this._conn = conn;

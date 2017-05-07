@@ -20,10 +20,14 @@ public class ConnectionManager {
 		return innerClass.instance;
 	}
 	
-	public Channel getChannel(String brokerName) throws Exception{
+	public  Channel getChannel(String brokerName) throws Exception{
 		if (!brokers.containsKey(brokerName)) {
-			BrokerDataSource dataSource = new BrokerDataSource(brokerName);
-			brokers.put(brokerName, dataSource);
+			synchronized (this) {
+				if (!brokers.containsKey(brokerName)){
+					BrokerDataSource dataSource = new BrokerDataSource(brokerName);
+					brokers.put(brokerName, dataSource);
+				}
+			}
 		}
 		
 		BrokerDataSource dataSource = brokers.get(brokerName);

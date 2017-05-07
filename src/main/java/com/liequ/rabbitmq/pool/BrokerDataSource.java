@@ -1,5 +1,8 @@
 package com.liequ.rabbitmq.pool;
 
+import javax.management.MalformedObjectNameException;
+import javax.management.ObjectName;
+
 import com.liequ.rabbitmq.exception.ConfigException;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
@@ -7,14 +10,14 @@ import com.rabbitmq.client.ConnectionFactory;
 
 public class BrokerDataSource {
 	
-	private volatile brokerBaseSource dataSource = null;
+	private volatile BrokerBaseSource dataSource = null;
 	private brokerConfig config = null;
 	private final String brokerName;
 	public BrokerDataSource(String brokerName){
 		this.brokerName = brokerName;
 	}
 
-	private brokerBaseSource createDataSource() throws ConfigException {
+	private BrokerBaseSource createDataSource() throws ConfigException {
 		
 		if (dataSource != null) {
 			return dataSource;
@@ -24,6 +27,8 @@ public class BrokerDataSource {
 			if (dataSource != null) {
 				return dataSource;
 			}
+			
+			createJmx();
 
 			config = new brokerConfig();
 			config.parse(brokerName);
@@ -35,13 +40,14 @@ public class BrokerDataSource {
 			BrokerChanelObjectManager poolChanelObjectManager = createPoolChanelObjectManager(
 					pooledConnChannelFactory, poolConnObjectManager);
 
-			brokerBaseSource newDataSource = new brokerBaseSource(
+			BrokerBaseSource newDataSource = new BrokerBaseSource(
 					poolChanelObjectManager);
 
 			try {
 				int initialSize = config.getInitialSize();
 				for (int i = 0; i < initialSize; i++) {
 					poolConnObjectManager.addObject();
+					poolChanelObjectManager.addObject();
 				}
 			} catch (Exception e) {
 				throw new BrokerException("Error preloading poolConnObject",
@@ -56,7 +62,7 @@ public class BrokerDataSource {
 			ConnChannelFactory pooledConnChannelFactory,
 			ConnectionObjectManager poolConnObjectManager) {
 		BrokerChanelObjectManager poolChanelObjectManager = new BrokerChanelObjectManager(
-				pooledConnChannelFactory, poolConnObjectManager);
+				pooledConnChannelFactory, poolConnObjectManager,registeredJmxName);
 		poolChanelObjectManager.setBlockWhenExhausted(config
 				.isBlockWhenExhausted());
 		poolChanelObjectManager.setMaxChannelCountToConn(config
@@ -68,11 +74,21 @@ public class BrokerDataSource {
 	private ConnectionObjectManager createPoolConnObjectManager(
 			ConnChannelFactory pooledConnChannelFactory) {
 		ConnectionObjectManager connObjectManager = new ConnectionObjectManager(
-				pooledConnChannelFactory);
+				pooledConnChannelFactory,registeredJmxName);
 		connObjectManager.setMaxConnTotal(config.getMaxConnTotal());
+		connObjectManager.setMaxWaitMillis(config.getMaxWaitMillisConn());
 		return connObjectManager;
 	}
+    private ObjectName registeredJmxName = null;
 
+    private void createJmx() {
+        try {
+        	registeredJmxName = new ObjectName("RabbitMQ_Client_"+brokerName+":name=BrokerDataSource");
+        } catch (MalformedObjectNameException e) {
+            return;
+        }
+    }
+    
 	private ConnChannelFactory createPooledConnChannelFactory(
 			BrokerConnectionFactory brokerConnectionFactory) {
 		ConnChannelFactory factory = new ConnChannelFactory(

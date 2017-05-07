@@ -1,8 +1,5 @@
 package com.liequ.rabbitmq.pool;
 
-import javax.management.ObjectName;
-
-import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 
 public class ConnChannelFactory {
@@ -26,9 +23,7 @@ public class ConnChannelFactory {
 			}
 			throw e;
 		}
-		// XXX ObjectName connJmxName;
-		ObjectName connJmxName = new ObjectName("");
-		BrokerConnection pc = new BrokerConnection(manager,conn, connJmxName);
+		BrokerConnection pc = new BrokerConnection(manager,conn);
         return new ConnectionObject(pc);
 	}
 	
@@ -39,11 +34,15 @@ public class ConnChannelFactory {
 		}
 	}
 	
-	public ChannelObject makeObject(BrokerChanelObjectManager manager,BrokerConnection pconn) throws Exception{
-		brokerChannel pc = pconn.createChannel();
-		ObjectName channelJmxName = new ObjectName("");
-		pc.set_jmxName(channelJmxName);
+	public BrokerChannel makeObject(BrokerChanelObjectManager manager,BrokerConnection pconn) throws Exception{
+		BrokerChannel pc = pconn.createChannel();
 		pc.setObjectManager(manager);
-		return new ChannelObject(pc);
+		return pc;
 	}
+	
+	public boolean validateChannelObject(ChannelObject object){
+		BrokerChannel channle = object.getPoolableChannel();
+		return channle.isOpen();
+	}
+	
 }

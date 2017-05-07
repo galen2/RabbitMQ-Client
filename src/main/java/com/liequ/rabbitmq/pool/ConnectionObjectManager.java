@@ -1,40 +1,62 @@
 package com.liequ.rabbitmq.pool;
 
+import java.lang.management.ManagementFactory;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
-public class ConnectionObjectManager extends BaseObjectManager<BrokerConnection>{
+import javax.management.InstanceAlreadyExistsException;
+import javax.management.MBeanRegistrationException;
+import javax.management.MBeanServer;
+import javax.management.MalformedObjectNameException;
+import javax.management.NotCompliantMBeanException;
+import javax.management.ObjectName;
+
+public class ConnectionObjectManager extends BaseObjectManager<BrokerConnection>  implements ObjectManagerMXBean{
     private final ConnChannelFactory factory;
     private final LinkedBlockingDeque<ConnectionObject> idleConnObjects;
     
     private final AtomicLong createConnCount = new AtomicLong(0);
     
-    private volatile int maxConnTotal = BaseConfig.DEFAULT_MAX_CONN_TOTAL;
-    
+    private  int maxConnTotal ;
+
+    private  long maxWaitMillis ;
+
     private final Map<IdentityWrapper<BrokerConnection>, ConnectionObject> allObjects =
             new ConcurrentHashMap<IdentityWrapper<BrokerConnection>, ConnectionObject>();
     
+    private static MBeanServer MBEAN_SERVER = null;
 
-	public ConnectionObjectManager(ConnChannelFactory pooledConnectionFactory){
+    static {
+        try {
+            MBEAN_SERVER = ManagementFactory.getPlatformMBeanServer();
+        } catch (Exception ex) {
+        }
+    }
+    private ObjectName jmxName;
+	public ConnectionObjectManager(ConnChannelFactory pooledConnectionFactory,ObjectName dataSource){
 		this.factory = pooledConnectionFactory;
 		idleConnObjects = new LinkedBlockingDeque<ConnectionObject>();
+		try {
+			jmxName = new ObjectName(dataSource.toString()+",objectManager=connectionManager");
+			MBEAN_SERVER.registerMBean(this, jmxName);
+		} catch (MalformedObjectNameException |InstanceAlreadyExistsException |
+                MBeanRegistrationException | NotCompliantMBeanException e) {
+		} 
 	}
 	
 
-	/**
-	 * 创建连接池的连接 此方法不对外开放，客户端没权限访问此对象
-	 * @param borrowMaxWaitMillis
-	 * @return
-	 * @throws Exception
-	 */
 	protected ConnectionObject borrowConnObject() throws Exception{
 		ConnectionObject pcnn = null;
 		while (pcnn == null) {
 			pcnn = idleConnObjects.pollFirst();
 			if (pcnn == null ) {
 				pcnn = create();
+				if (pcnn == null) {
+					pcnn = idleConnObjects.pollFirst(getMaxWaitMillis(), TimeUnit.MILLISECONDS);
+				}
 				return pcnn;
 			}
 		}
@@ -52,6 +74,7 @@ public class ConnectionObjectManager extends BaseObjectManager<BrokerConnection>
 			}
 			p = factory.makeObject(this);
 		} catch (Exception e) {
+			createConnCount.decrementAndGet();
 			throw e;
 		}
 		BrokerConnection cnn = p.get_poolableConn();
@@ -78,6 +101,22 @@ public class ConnectionObjectManager extends BaseObjectManager<BrokerConnection>
 
 	public void setMaxConnTotal(int maxConnTotal) {
 		this.maxConnTotal = maxConnTotal;
+	}
+	
+
+	public long getMaxWaitMillis() {
+		return maxWaitMillis;
+	}
+
+
+	public void setMaxWaitMillis(long maxWaitMillis) {
+		this.maxWaitMillis = maxWaitMillis;
+	}
+
+
+	@Override
+	public long getObjectSum() {
+		return createConnCount.get();
 	}
 	
 }

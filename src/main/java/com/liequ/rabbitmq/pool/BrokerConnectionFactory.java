@@ -26,9 +26,6 @@ public class BrokerConnectionFactory {
 		return _connectionFactory.newConnection(_serverPortAddress);
 	}
 	
-	/*public Channel createChannel(Connection conn) throws IOException{
-		return conn.createChannel();
-	}*/
 	
 	@Override
     public String toString() {

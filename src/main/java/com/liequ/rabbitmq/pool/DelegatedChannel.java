@@ -48,26 +48,18 @@ public class DelegatedChannel<C extends Channel> implements Channel{
 	  _channel = c;
     }
 
-	protected DelegatedConnection<Connection> getDelegateConnectionInterval(){
+	protected DelegatedConnection<Connection> getDelegateConnection(){
 		return _conn;
 	}
+	
+	public Connection getConnection() {
+		return getDelegateConnection();
+	}
+	
 
-	
-   /**
-    * 获取底层连接对象：框架使用
-    * @return
-    */
-	protected final Channel getInnermostDelegateInternal() {
-	  Channel c = _channel;
-        while(c != null && c instanceof DelegatedChannel) {
-            c = ((DelegatedChannel<?>)c).getDelegateInternal();
-            if(this == c) {
-                return null;
-            }
-        }
-        return c;
+	protected boolean isClosedInternal() {
+        return _closed;
     }
-	
 	public void close() throws IOException, TimeoutException {
 		if (!_closed) {
 			_channel.close();
@@ -82,7 +74,6 @@ public class DelegatedChannel<C extends Channel> implements Channel{
 			_closed = true;
 		}
 	}
-	
 	
 	public void addShutdownListener(ShutdownListener listener) {
 		_channel.addShutdownListener(listener);
@@ -107,10 +98,6 @@ public class DelegatedChannel<C extends Channel> implements Channel{
 
 	public int getChannelNumber() {
 		return _channel.getChannelNumber();
-	}
-
-	public Connection getConnection() {
-		return _channel.getConnection();
 	}
 
 	

@@ -19,14 +19,14 @@ public class brokerConfig {
 	private String passsWord;
 	private String virtualHost;
 	private ArrayList<Address> serverPortAddress;
-	private int maxConnTotal;//最大连接数
-	private int initialSize = 0;//初始化连接数
-	private int minIdle;
-	private int maxIdel;
+	private int maxConnTotal = BaseConfig.DEFAULT_MAX_CONN_TOTAL;
 	
-	//获取channel最大等待时间
-	private  long maxWaitMillis = BaseConfig.DEFAULT_MAX_WAIT_MILLIS;
-	//单个连接创建最大channel数
+	private int initialSize = BaseConfig.DEFAULT_INITIAL_CONN_SIZE;
+	
+	private  long maxWaitMillis = BaseConfig.DEFAULT_MAX_WAIT_MILLIS_CHANNEL;
+	
+	private  long maxWaitMillisConn = BaseConfig.DEFAULT_MAX_WAIT_MILLIS_CONNECTION;
+	
     private  int maxChannelCountPerConn = BaseConfig.DEFAULT_MAX_CHANNEL_TOTAL_TO_CONN;
     
     private  boolean blockWhenExhausted = BaseConfig.DEFAULT_BLOCK_WHEN_EXHAUSTED;
@@ -53,16 +53,17 @@ public class brokerConfig {
             	 maxWaitMillis = Long.parseLong(value);
              } else if (key.equals(brokerName + ".maxChannelCountPerConn")) {
             	 maxChannelCountPerConn = Integer.parseInt(value);
+             } else if (key.equals(brokerName + ".virtualHost")) {
+            	 virtualHost = value;
              } else if (key.equals(brokerName + ".blockWhenExhausted")) {
-            	 blockWhenExhausted = Boolean.getBoolean(value);
+            	 blockWhenExhausted = Boolean.parseBoolean(value);
              } else if (key.equals(brokerName + ".server")) {
             	 String[] servers = value.split(",");
             	 if (servers.length == 0){
             		 throw new ConfigException("server must be seted");
             	 }
-            	 
+        		 ArrayList<Address> addressList = new ArrayList<Address>(3);
             	 for (String server : servers) {
-            		 ArrayList<Address> addressList = new ArrayList<Address>(3);
             		 String[] addStr = server.split(":");
             		 if (addStr.length !=2 ) {
                 		 throw new ConfigException("Unrecognise server "+server);
@@ -72,6 +73,7 @@ public class brokerConfig {
             		 Address address = new Address(host,port);
             		 addressList.add(address);
             	 }
+            	 serverPortAddress = addressList;
              }/* else {
             	 System.setProperty(key, value);
              }*/
@@ -107,12 +109,13 @@ public class brokerConfig {
 		return serverPortAddress;
 	}
 	
-	public int getMinIdle() {
-		return minIdle;
+	
+	public long getMaxWaitMillisConn() {
+		return maxWaitMillisConn;
 	}
-	public int getMaxIdel() {
-		return maxIdel;
-	}
+
+
+
 	public int getMaxConnTotal() {
 		return maxConnTotal;
 	}
