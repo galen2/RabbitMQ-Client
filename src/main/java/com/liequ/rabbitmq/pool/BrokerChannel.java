@@ -35,16 +35,23 @@ public class BrokerChannel extends DelegatedChannel<Channel>{
 	public void close(int closeCode, String closeMessage) throws IOException,TimeoutException {
 		close();
 	}
-	@Override
-	public void abort() throws IOException {
-		if (isClosedInternal()) {
-			return;
-		}
-		objectManager.returnObject(this);
+	
+	protected void passivate() {
+	     setClosedInternal(true);
 	}
 	
-	@Override
-	public void abort(int closeCode, String closeMessage) throws IOException {
-		abort();
+	protected void activateObject(){
+		setClosedInternal(false);
 	}
+	
+	public boolean isClosed()  {
+        if (isClosedInternal()) {
+            return true;
+        }
+        
+        if (!getDelegateInternal().isOpen()) {
+            return true;
+        }
+        return false;
+    }
 }

@@ -1,9 +1,11 @@
 package com.liequ.rabbitmq.pool;
 
 import java.io.IOException;
+
 import java.net.InetAddress;
 import java.util.Map;
 
+import com.liequ.rabbitmq.exception.ConnException;
 import com.rabbitmq.client.BlockedListener;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
@@ -13,6 +15,8 @@ import com.rabbitmq.client.ShutdownSignalException;
 @SuppressWarnings("unchecked")
 public class DelegatedConnection<C extends Connection> implements Connection{
 	private volatile C _conn = null;
+
+    private volatile boolean _closed = false;
 
 	public DelegatedConnection(C conn){
 		this._conn = conn;
@@ -34,106 +38,156 @@ public class DelegatedConnection<C extends Connection> implements Connection{
 		return poolChannel;
 	}
 	 
-	
+	 protected boolean isClosedInternal() {
+	      return _closed;
+	 }
+
+    protected void setClosedInternal(boolean closed) {
+        this._closed = closed;
+    }
+    
+    protected final void closeInternal() throws IOException {
+    	if (_conn != null) {
+    		try {
+				_conn.close();
+			} finally {
+				_closed = true;
+			}
+    	} else {
+    		_closed = true;
+    	}
+    }
+    
+    public void close() throws IOException {
+    	if (_conn != null) {
+    		_conn.close();
+    	} 
+	}
+
+	public void close(int closeCode, String closeMessage) throws IOException {
+		close();
+	}
+
+	public void close(int timeout) throws IOException {
+		close();
+	}
+
+	public void close(int closeCode, String closeMessage, int timeout)
+			throws IOException {
+		close();
+	}
+
+	/**
+	 * Temporarily not supported
+	 */
+	public void abort() {
+	}
+	/**
+	 * Temporarily not supported
+	 */
+	public void abort(int closeCode, String closeMessage) {
+	}
+	/**
+	 * Temporarily not supported
+	 */
+	public void abort(int timeout) {
+	}
+	/**
+	 * Temporarily not supported
+	 */
+	public void abort(int closeCode, String closeMessage, int timeout) {
+	}
+
+	    
     protected final void setDelegateInternal(C conn) {
     	this._conn = conn;
     }
 	
 	public void addShutdownListener(ShutdownListener listener) {
+		checkOpen();
 		_conn.addShutdownListener(listener);
-		
 	}
 
 	public void removeShutdownListener(ShutdownListener listener) {
+		checkOpen();
 		_conn.removeShutdownListener(listener);
 	}
 
 	public ShutdownSignalException getCloseReason() {
+		checkOpen();
 		return _conn.getCloseReason();
 	}
 
 	public void notifyListeners() {
+		checkOpen();
 		_conn.notifyListeners();
 	}
 
+	protected void checkOpen() { 
+		if (!isOpen()) {
+			throw new ConnException("connection is closed");
+		}
+	}
+
 	public boolean isOpen() {
-		return _conn.isOpen();
+		if (_conn != null) {
+			return _conn.isOpen();
+		} 
+		return  false;
 	}
 
 	public InetAddress getAddress() {
+		checkOpen();
 		return _conn.getAddress();
 	}
 
 	public int getPort() {
+		checkOpen();
 		return _conn.getPort();
 	}
 
 	public int getChannelMax() {
+		checkOpen();
 		return _conn.getChannelMax();
 	}
 
 	public int getFrameMax() {
+		checkOpen();
 		return _conn.getFrameMax();
 	}
 
 	public int getHeartbeat() {
+		checkOpen();
 		return _conn.getHeartbeat();
 	}
 
 	public Map<String, Object> getClientProperties() {
+		checkOpen();
 		return _conn.getClientProperties();
 	}
 
 	public Map<String, Object> getServerProperties() {
+		checkOpen();
 		return _conn.getServerProperties();
 	}
 	
-	public void close() throws IOException {
-		_conn.close();
-	}
-
-	public void close(int closeCode, String closeMessage) throws IOException {
-		_conn.close(closeCode, closeMessage);
-	}
-
-	public void close(int timeout) throws IOException {
-		_conn.close(timeout);
-	}
-
-	public void close(int closeCode, String closeMessage, int timeout)
-			throws IOException {
-		_conn.close(closeCode, closeMessage, timeout);
-	}
-
-	public void abort() {
-		_conn.abort();
-	}
-
-	public void abort(int closeCode, String closeMessage) {
-		_conn.abort(closeCode, closeMessage);
-	}
-
-	public void abort(int timeout) {
-		_conn.abort(timeout);
-	}
-
-	public void abort(int closeCode, String closeMessage, int timeout) {
-		_conn.abort(closeCode, closeMessage, timeout);
-	}
-
 	public void addBlockedListener(BlockedListener listener) {
+		checkOpen();
 		_conn.addBlockedListener(listener);
 	}
 
 	public boolean removeBlockedListener(BlockedListener listener) {
+		checkOpen();
 		return _conn.removeBlockedListener(listener);
 	}
 
 	public void clearBlockedListeners() {
+		checkOpen();
 		_conn.clearBlockedListeners();
 	}
 
 	public ExceptionHandler getExceptionHandler() {
+		checkOpen();
 		return _conn.getExceptionHandler();
 	}
 	

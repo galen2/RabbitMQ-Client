@@ -1,6 +1,7 @@
 package com.liequ.rabbitmq.pool;
 
 import java.io.IOException;
+import java.sql.SQLException;
 
 import com.rabbitmq.client.Connection;
 
@@ -14,9 +15,10 @@ public class BrokerConnection extends  DelegatedConnection<Connection>{
 
 	@Override
 	public void close() throws IOException {
-		if (isOpen()) {
-			manager.returnObject(this);
+		if (isClosedInternal()) {
+			return;
 		}
+		manager.returnObject(this);
 	}
 	
 	@Override
@@ -32,5 +34,24 @@ public class BrokerConnection extends  DelegatedConnection<Connection>{
 			throws IOException {
 		close();
 	}
+	
+	protected void passivate() {
+	     setClosedInternal(true);
+	}
+	
+	protected void activateObject(){
+		setClosedInternal(false);
+	}
+	
+	public boolean isClosed()  {
+        if (isClosedInternal()) {
+            return true;
+        }
+        
+        if (!getDelegateInternal().isOpen()) {
+            return true;
+        }
+        return false;
+    }
 	
 }

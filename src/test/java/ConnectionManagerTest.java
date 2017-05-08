@@ -4,6 +4,7 @@ import org.junit.Test;
 
 import com.liequ.rabbitmq.pool.ConnectionManager;
 import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
 
 
 public class ConnectionManagerTest {
@@ -45,7 +46,11 @@ public class ConnectionManagerTest {
 	@Test
 	public void chanel() throws Exception{
 		Channel	cn = ConnectionManager.getInstance().getChannel("one");
-		cn.close();
-		cn.close();
+//		cn.close();
+//		cn.clearConfirmListeners();
+		Connection conn = ConnectionManager.getInstance().getConnection("one", cn);
+		conn.addShutdownListener(null);
+		/*cn.close();
+		cn.close();*/
 	}
 }

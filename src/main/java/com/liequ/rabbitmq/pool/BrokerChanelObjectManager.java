@@ -1,11 +1,13 @@
 package com.liequ.rabbitmq.pool;
 
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 
 import javax.management.InstanceAlreadyExistsException;
@@ -94,10 +96,16 @@ public class BrokerChanelObjectManager  extends BaseObjectManager<BrokerChannel>
 			}
 			
 			if (pchan != null) {
+				factory.activateObject(pchan);
+			}
+			
+			if (pchan != null) {
 				boolean validate = factory.validateChannelObject(pchan);
 				if (!validate) {
-					destory(pchan);
-					
+					try {
+						destory(pchan);
+					} catch (Exception e) {
+					}
 					pchan = null;
 				}
 			}
@@ -105,10 +113,12 @@ public class BrokerChanelObjectManager  extends BaseObjectManager<BrokerChannel>
 		return pchan.getPoolableChannel();
 	}
 	
-	private void destory(ChannelObject pchan){
+	private void destory(ChannelObject pchan) throws IOException, TimeoutException{
+		factory.destroyObject(pchan);
 		ConnectionObject cnnObj = pchan.getPooledConnObject();
 		cnnObj.getChannelCount().incrementAndGet();
 		allObjects.remove(new IdentityWrapper<BrokerChannel>(pchan.getPoolableChannel()));
+		
 	}
 	
 	
@@ -121,7 +131,7 @@ public class BrokerChanelObjectManager  extends BaseObjectManager<BrokerChannel>
 		chanelCount.incrementAndGet();
 		final ChannelObject p;
 		try {
-			BrokerConnection pooledConn = pooledConnObject.get_poolableConn();
+			BrokerConnection pooledConn = pooledConnObject.getPoolableConn();
 			BrokerChannel channel = factory.makeObject(this,pooledConn);
 			p = new ChannelObject(channel, pooledConnObject);
 			createChannelCount.incrementAndGet();
@@ -131,7 +141,7 @@ public class BrokerChanelObjectManager  extends BaseObjectManager<BrokerChannel>
 			throw e;
 		} finally {
 			if (idleChannel2Conn(pooledConnObject)) {
-				poolConnObjectManager.returnObject(pooledConnObject.get_poolableConn());
+				poolConnObjectManager.returnObject(pooledConnObject.getPoolableConn());
 			}
 		}
 		return p;
@@ -166,6 +176,7 @@ public class BrokerChanelObjectManager  extends BaseObjectManager<BrokerChannel>
 	protected void returnObject(BrokerChannel obj){
 		ChannelObject p = allObjects.get(new IdentityWrapper<BrokerChannel>(obj));
 		idleChannelObjects.addLast(p);
+		factory.passivateObject(p);
 	}
 	
 

@@ -9,14 +9,14 @@ public class ConnectionObject {
     
     public final AtomicLong channelCount = new AtomicLong(0);//已经创建的channel数
 
-    private final BrokerConnection _poolableConn;
+    private final BrokerConnection poolableConn;
 
     public ConnectionObject(BrokerConnection poolableConnection){
-    	this._poolableConn = poolableConnection;
+    	this.poolableConn = poolableConnection;
     }
 
-	public BrokerConnection get_poolableConn() {
-		return _poolableConn;
+	public BrokerConnection getPoolableConn() {
+		return poolableConn;
 	}
 	
 	public AtomicLong getChannelCount(){

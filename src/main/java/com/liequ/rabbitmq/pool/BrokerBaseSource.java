@@ -27,7 +27,7 @@ public class BrokerBaseSource {
 	@SuppressWarnings("unchecked")
 	public Connection getConnection(Channel channel) throws Exception{
 		try {
-			if (channel instanceof DelegatedChannel){
+			if (! (channel instanceof DelegatedChannel)){
 				throw new IllegalArgumentException("Unrecoginise channel");
 			}
 			DelegatedChannel<Channel> delegateChannel = (DelegatedChannel<Channel>)channel;

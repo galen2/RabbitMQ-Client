@@ -1,5 +1,6 @@
 package com.liequ.rabbitmq.pool;
 
+import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -16,6 +17,7 @@ import javax.management.ObjectName;
 
 public class ConnectionObjectManager extends BaseObjectManager<BrokerConnection>  implements ObjectManagerMXBean{
     private final ConnChannelFactory factory;
+    
     private final LinkedBlockingDeque<ConnectionObject> idleConnObjects;
     
     private final AtomicLong createConnCount = new AtomicLong(0);
@@ -59,8 +61,29 @@ public class ConnectionObjectManager extends BaseObjectManager<BrokerConnection>
 				}
 				return pcnn;
 			}
+			
+			if (pcnn != null) {
+				factory.activateObject(pcnn);
+			}
+			
+			if (pcnn !=null) {
+				boolean validate = factory.validateConnObject(pcnn);
+				if (!validate) {
+					try {
+						destroy(pcnn);
+					} catch (Exception e) {
+					}
+					pcnn = null;
+				}
+			}
 		}
 		return pcnn;
+	}
+	
+	private void destroy(ConnectionObject pcnn) throws IOException{
+		factory.destroyObject(pcnn);
+		allObjects.remove(new IdentityWrapper<BrokerConnection>(pcnn.getPoolableConn()));
+		createConnCount.decrementAndGet();
 	}
 	
 	private ConnectionObject create() throws Exception{
@@ -77,14 +100,15 @@ public class ConnectionObjectManager extends BaseObjectManager<BrokerConnection>
 			createConnCount.decrementAndGet();
 			throw e;
 		}
-		BrokerConnection cnn = p.get_poolableConn();
+		BrokerConnection cnn = p.getPoolableConn();
 		allObjects.put(new IdentityWrapper<BrokerConnection>(cnn), p);
 		return p;
 	}
 	
 	public void returnObject(BrokerConnection  cnn){
-		ConnectionObject pp = allObjects.get(new IdentityWrapper<BrokerConnection>(cnn));
-		idleConnObjects.addLast(pp);
+		ConnectionObject conn = allObjects.get(new IdentityWrapper<BrokerConnection>(cnn));
+		idleConnObjects.addLast(conn);
+		factory.passivateObject(conn);
 	}
 	
 	
