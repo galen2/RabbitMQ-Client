@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.liequ.rabbitmq.PublickCallBack;
+import com.liequ.rabbitmq.PublishCallBack;
 import com.liequ.rabbitmq.QueueFactory;
 import com.liequ.rabbitmq.ToolUtils;
 import com.rabbitmq.client.AMQP;
@@ -20,7 +20,7 @@ public class PublishQueue {
 		channel.basicPublish("", routingKey, MessageProperties.PERSISTENT_TEXT_PLAIN, msg);
     }
 	
-	public static  void basicPublishPersistentACK(final String msg, String routingKey,final PublickCallBack callBack) throws IOException {
+	public static  void basicPublishPersistentACK(final String msg, String routingKey,final PublishCallBack callBack) throws IOException {
 		Channel channel = ToolUtils.getChannelInstance();
 		QueueFactory.declareDurableQueue(channel, routingKey);
 		basicPublishACK(channel, routingKey, msg, MessageProperties.PERSISTENT_TEXT_PLAIN, callBack);
@@ -34,14 +34,14 @@ public class PublishQueue {
     }
 	    
     
-    public static void basicPublishVolatileACK(String msg, String routingKey,Map<String, Object> args,final PublickCallBack callBack) throws IOException {
+    public static void basicPublishVolatileACK(String msg, String routingKey,Map<String, Object> args,final PublishCallBack callBack) throws IOException {
 		Channel channel = ToolUtils.getChannelInstance();
 		QueueFactory.declareTransientQueue(channel, routingKey, args);
 		basicPublishACK(channel, routingKey, msg,MessageProperties.TEXT_PLAIN, callBack);
     }
     
     
-	private static void basicPublishACK(Channel channel, String routingKey,final String msg, AMQP.BasicProperties props,final PublickCallBack callBack) throws IOException {
+	private static void basicPublishACK(Channel channel, String routingKey,final String msg, AMQP.BasicProperties props,final PublishCallBack callBack) throws IOException {
 		try{
 			final AtomicBoolean ack  = new AtomicBoolean(false);
 			channel.addConfirmListener(new ConfirmListener() {

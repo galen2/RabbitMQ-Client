@@ -1,7 +1,8 @@
-package com.liequ.rabbitmq.pool;
+package com.liequ.rabbitmq;
 
 import java.util.HashMap;
 
+import com.liequ.rabbitmq.pool.BrokerDataSource;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 

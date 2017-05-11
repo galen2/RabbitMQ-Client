@@ -2,7 +2,7 @@ import java.util.concurrent.CountDownLatch;
 
 import org.junit.Test;
 
-import com.liequ.rabbitmq.pool.ConnectionManager;
+import com.liequ.rabbitmq.ConnectionManager;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 

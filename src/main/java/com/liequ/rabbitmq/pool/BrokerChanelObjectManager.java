@@ -113,7 +113,7 @@ public class BrokerChanelObjectManager  extends BaseObjectManager<BrokerChannel>
 		return pchan.getPoolableChannel();
 	}
 	
-	private void destory(ChannelObject pchan) throws IOException, TimeoutException{
+	private void destory(ChannelObject pchan) throws IOException, TimeoutException  {
 		factory.destroyObject(pchan);
 		ConnectionObject cnnObj = pchan.getPooledConnObject();
 		cnnObj.getChannelCount().incrementAndGet();

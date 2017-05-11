@@ -1,6 +1,6 @@
 package com.liequ.rabbitmq;
 
-public interface PublickCallBack {
+public interface PublishCallBack {
 
 	void handlerMissMsg(String msg);
 }

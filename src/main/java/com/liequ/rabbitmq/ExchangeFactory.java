@@ -5,7 +5,7 @@ import java.util.UUID;
 import com.rabbitmq.client.Channel;
 
 
-public class ExchangeFactory {
+public class ExchangeFactory {/*
 	
 	 private static Channel channel = ToolUtils.getChannelInstance();
 	 
@@ -42,4 +42,4 @@ public class ExchangeFactory {
 	        return "exchange" + UUID.randomUUID().toString();
 	    }
 
-}
+*/}
