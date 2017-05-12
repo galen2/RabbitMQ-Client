@@ -3,7 +3,6 @@ package com.liequ.rabbitmq.pool;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 
-import com.liequ.rabbitmq.exception.ConfigException;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
@@ -17,7 +16,7 @@ public class BrokerDataSource {
 		this.brokerName = brokerName;
 	}
 
-	private BrokerBaseSource createDataSource() throws ConfigException {
+	private BrokerBaseSource createDataSource() throws Exception {
 		
 		if (dataSource != null) {
 			return dataSource;
@@ -30,8 +29,7 @@ public class BrokerDataSource {
 			
 			createJmx();
 
-			config = new BrokerConfig();
-			config.parse(brokerName);
+			config = BrokerConfigManager.getInstance().getBrokerConfig(brokerName);
 			
 			BrokerConnectionFactory brokerConnectionFactory = createBrokerConnectionFactory();
 			ConnChannelFactory pooledConnChannelFactory = createPooledConnChannelFactory(brokerConnectionFactory);
@@ -76,7 +74,7 @@ public class BrokerDataSource {
 		ConnectionObjectManager connObjectManager = new ConnectionObjectManager(
 				pooledConnChannelFactory,registeredJmxName);
 		connObjectManager.setMaxConnTotal(config.getMaxConnTotal());
-		connObjectManager.setMaxWaitMillis(config.getMaxWaitMillisConn());
+		connObjectManager.setMaxWaitMillis(config.getMaxWaitMillis());
 		return connObjectManager;
 	}
     private ObjectName registeredJmxName = null;

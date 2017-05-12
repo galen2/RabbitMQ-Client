@@ -1,7 +1,5 @@
 package com.liequ.rabbitmq.util;
 
-import j.Env;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -17,7 +15,7 @@ public class PropertiesManager {
 
 	 public static Properties getProperties(String fileName) throws ConfigException {
          Properties prop = new Properties();
-    	 String path = Env.ROOT.concat(fileName);
+    	 String path = Envm.ROOT.concat(fileName);
 
         try {
     		 File configFile = new File(path);

@@ -65,13 +65,16 @@ public class ToolUtils {
     }
 
     public static void main(String[] args) {
-    	while(true){
+    	
+    	String apth =ToolUtils.class.getResource("/").getFile();
+    	System.out.println(apth);
+    	/*while(true){
         	Channel chanel = getChannelInstance();
         	if(chanel==null){
         		break;
         	}
         	System.out.println(chanel);
-    	}
+    	}*/
 	}
     
     public static void closeConnection(Connection connection) {
