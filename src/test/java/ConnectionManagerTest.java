@@ -45,11 +45,11 @@ public class ConnectionManagerTest {
 	
 	@Test
 	public void chanel() throws Exception{
-		Channel	cn = ConnectionManager.getInstance().getChannel("one");
-//		cn.close();
+		Channel	cn = ConnectionManager.getInstance().getChannel("brokerNameOne");
+		cn.close();
 //		cn.clearConfirmListeners();
-		Connection conn = ConnectionManager.getInstance().getConnection("one", cn);
-		conn.addShutdownListener(null);
+//		Connection conn = ConnectionManager.getInstance().getConnection("one", cn);
+//		conn.addShutdownListener(null);
 		/*cn.close();
 		cn.close();*/
 	}

@@ -2,7 +2,7 @@ package com.liequ.rabbitmq;
 
 import java.util.HashMap;
 
-import com.liequ.rabbitmq.pool.BrokerDataSource;
+import com.liequ.rabbitmq.factory.BrokerDataSource;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 
@@ -39,8 +39,8 @@ public class ConnectionManager {
 		}
 	}
 	
-	public Connection getConnection(String poolName,Channel channel) throws Exception{
-		BrokerDataSource dataSource = brokers.get(poolName);
+	public Connection getConnection(String brokerName,Channel channel) throws Exception{
+		BrokerDataSource dataSource = brokers.get(brokerName);
 		return dataSource.getConnection(channel);
 	}
 }

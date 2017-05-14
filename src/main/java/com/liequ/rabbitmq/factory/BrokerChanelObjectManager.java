@@ -1,4 +1,4 @@
-package com.liequ.rabbitmq.pool;
+package com.liequ.rabbitmq.factory;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;

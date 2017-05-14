@@ -1,4 +1,4 @@
-package com.liequ.rabbitmq.pool;
+package com.liequ.rabbitmq.factory;
 
 public class BrokerException extends RuntimeException{
 

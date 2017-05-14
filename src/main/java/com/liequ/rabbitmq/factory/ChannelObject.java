@@ -1,4 +1,4 @@
-package com.liequ.rabbitmq.pool;
+package com.liequ.rabbitmq.factory;
 
 /**
  *做一些针对该对象数据统计记录，

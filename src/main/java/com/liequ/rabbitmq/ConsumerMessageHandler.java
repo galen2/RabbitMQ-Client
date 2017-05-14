@@ -5,7 +5,7 @@ import java.util.Map;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.QueueingConsumer.Delivery;
 
-public interface QueueMessageHandler {
+public interface ConsumerMessageHandler {
 	
 	/**
 	 * e.g:
