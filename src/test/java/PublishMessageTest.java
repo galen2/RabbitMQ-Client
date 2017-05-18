@@ -29,7 +29,7 @@ public class PublishMessageTest {
 	public void publishBase(){
 		int i = 0;
 		while (true)  {
-			if (i++ >=10000){
+			if (i++ >=1000){
 				break;
 			}
 			String content = UUID.randomUUID().toString();
