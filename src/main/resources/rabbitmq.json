@@ -3,7 +3,7 @@
         "userName":"tonyg",
         "passsWord":"changeit",
         "virtualHost":"/tonyg",
-         "initialSize":"1",
+        "initialSize":"1",
         "maxConnTotal":"2",
         "maxChannelCountPerConn":"8",
         "maxWaitMillis":"2000",

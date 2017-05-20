@@ -1,7 +1,6 @@
 package com.liequ.rabbitmq.factory;
 
 import java.io.IOException;
-import java.sql.SQLException;
 
 import com.rabbitmq.client.Connection;
 
